@@ -1,0 +1,17 @@
+[project]
+name = "municipality-screener-mcp"
+version = "1.0.0"
+description = "MCP server for screening all 1,741 Japanese municipalities by published statistics (Japan Open Data Lab)"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+dependencies = ["mcp<2"]
+
+[project.scripts]
+municipality-screener-mcp = "server:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["server"]

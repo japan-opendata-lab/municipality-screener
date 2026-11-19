@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "municipality-screener": {
+      "command": "python",
+      "args": ["mcp/server.py"],
+      "env": {}
+    }
+  }
+}
