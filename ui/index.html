@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>自治体スクリーナー / Municipality Screener (standalone)</title>
+<style>
+:root{--ink:#17242e; --sub:#5b6b76; --line:#dde4e8; --teal:#0b7285; --bg:#f7f9fa; --amber:#F59E0B}
+*{box-sizing:border-box}
+html{scrollbar-gutter:stable}
+body{margin:0;font-family:'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;color:var(--ink);background:var(--bg);line-height:1.75}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px 64px}
+header.site{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:60}
+a{color:var(--teal)}
+h1{font-family:'Noto Serif JP','Hiragino Mincho ProN',serif;font-size:30px;margin:26px 0 6px}
+h2{font-size:20px;margin:38px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--line)}
+.muted{color:var(--sub);font-size:13.5px}
+.crumbs{font-size:13px;color:var(--sub);margin-top:18px}
+.crumbs a{color:var(--sub)}
+.code-line{font-size:12px;letter-spacing:.14em;color:var(--teal);font-weight:700;margin-top:14px}
+.facts{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px}
+.fact{background:#fff;border:1px solid var(--line);border-radius:99px;padding:4px 14px;font-size:13px}
+.gcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.gcard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;text-decoration:none;color:var(--ink);display:block}
+.gcard .g-name{font-weight:700;font-size:16px}
+.gcard .g-count{font-size:21px;font-weight:700;color:var(--teal)}
+.gcard .g-latest{font-size:12.5px;color:var(--sub)}
+.item{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:12px}
+.item .i-date{font-size:12.5px;color:var(--teal);font-weight:700;letter-spacing:.06em}
+.item h3{font-size:16.5px;margin:4px 0 2px;line-height:1.5}
+.item .i-orig{font-size:13px;color:var(--sub);margin:0 0 6px}
+.item .i-meta{font-size:13px;color:var(--sub);margin:0 0 8px}
+.item ul.sum{margin:0;padding-left:20px;font-size:14px}
+.item ul.sum li{margin:2px 0}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.tag{font-size:12.5px;background:#e8f4f6;color:var(--teal);border-radius:99px;padding:2px 12px;text-decoration:none}
+span.tag{background:#eef2f4;color:var(--sub)}
+.note-box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:14px}
+.arch{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.arch a{background:#e8f4f6;color:var(--teal);font-weight:700;border-radius:99px;padding:6px 16px;text-decoration:none;font-size:13.5px}
+footer{margin-top:56px;border-top:1px solid var(--line);padding-top:18px}
+/*FOOTER_CSS_INJECT*/
+.to-top{position:fixed;right:16px;bottom:16px;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--sub);cursor:pointer;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50}
+.to-top.show{opacity:1;pointer-events:auto}
+@media (max-width:640px){h1{font-size:24px}}
+:root[data-theme="dark"]{--bg:#081426;--ink:#E9EEF3;--sub:#9DB0C1;--line:#223850;--teal:#2FB3C6;color-scheme:dark}
+:root[data-theme="dark"] header.site,:root[data-theme="dark"] .gcard,:root[data-theme="dark"] .item,:root[data-theme="dark"] .note-box,:root[data-theme="dark"] .fact{background:#0E1E33}
+:root[data-theme="dark"] .arch a{background:#132a44}
+.theme-toggle{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--sub);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:none;padding:0;margin-left:10px;vertical-align:middle}
+:root[data-theme="dark"] .theme-toggle{background:#0E1E33}
+.theme-toggle svg{width:16px;height:16px}
+.theme-toggle .ic-sun{display:none}
+:root[data-theme="dark"] .theme-toggle .ic-sun{display:block}
+:root[data-theme="dark"] .theme-toggle .ic-moon{display:none}
+.brand-logo{height:38px;width:auto;display:block}@media (max-width:640px){.brand-logo{height:31px}}:root[data-theme="dark"] .brand-logo{background:#fff;border-radius:8px;padding:2px 6px}
+
+/* common site header (standard nav) on types-chrome pages */
+.site-header{position:sticky;top:0;z-index:60}
+.to-top{position:fixed;right:14px;bottom:16px;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--sub);font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;visibility:hidden;transition:opacity .25s ease,visibility .25s;z-index:55;box-shadow:0 6px 18px rgba(7,24,48,.14);padding:0}
+.to-top.show{opacity:1;visibility:visible}
+.to-top:hover{color:var(--ink);border-color:var(--sub)}
+:root[data-theme="dark"] .to-top{background:#0E1E33}
+.site-header{border-bottom:1px solid var(--line);background:#fff}
+.site-header .wrap{display:flex;align-items:center;gap:12px;flex-wrap:wrap;max-width:1200px;margin:0 auto;padding:16px 24px}
+.site-header .brand-link{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
+.site-header img.logo-mark{border-radius:7px;display:block}
+.site-header .brand{font-size:17px;font-weight:700;letter-spacing:.02em}
+.site-header .site-nav{margin-left:auto;display:flex;gap:24px;font-size:14px;align-items:center;flex-wrap:wrap}
+.site-header .site-nav a{color:var(--sub);text-decoration:none}
+.site-header .site-nav a:hover{color:var(--teal)}
+.site-header .site-nav a.nav-pill{background:#F5F8FA;border:1px solid var(--line);border-radius:99px;padding:4px 14px;line-height:1.4;color:var(--ink);font-weight:600}
+.site-header .site-nav a.nav-pill:hover{border-color:var(--teal);color:var(--teal)}
+:root[data-theme="dark"] .site-header{background:#0E1E33}
+:root[data-theme="dark"] .site-header .site-nav a.nav-pill{background:#0E1E33}
+/* two-tier header on mobile */
+.site-header .nav-group{display:contents}
+.site-header .site-nav .l-diag{order:0}
+.site-header .site-nav .nav-secondary a{order:1}
+.site-header .site-nav .nav-pill{order:2}
+.site-header .site-nav .theme-toggle{order:3}
+.site-header .site-nav a{white-space:nowrap}
+@media (max-width:640px){
+  .site-header .wrap{flex-wrap:wrap;row-gap:10px;padding:12px 16px}
+  .site-header .site-nav{display:contents}
+  .site-header .nav-primary{display:flex;align-items:center;gap:6px;margin-left:auto;order:1;flex:0 0 auto;flex-wrap:nowrap}
+  .site-header .nav-secondary{display:flex;align-items:center;gap:18px;flex:0 0 100%;order:2;flex-wrap:nowrap}
+  .site-header .brand-link{order:0;gap:8px;flex:0 0 auto}
+  .site-header .brand{font-size:13px;letter-spacing:0}
+  .site-header .site-nav .nav-pill{padding:3px 8px;font-size:11.5px}
+  .site-header .site-nav .l-diag{font-size:13px}
+  .site-header .site-nav .theme-toggle{width:28px;height:28px}
+  .site-header .nav-secondary a{font-size:13px}
+  .site-header .site-nav.nav-en .nav-secondary{gap:12px}
+}
+
+.site-footer{margin-top:88px;border-top:1px solid var(--line);padding:28px 0 40px}
+.f-groups{display:flex;gap:56px;flex-wrap:wrap;margin-top:30px;justify-content:flex-end}
+.f-group{display:flex;flex-direction:column;gap:10px;text-align:right;align-items:flex-end}
+.f-head{font-family:"Roboto Mono",monospace;font-size:10px;letter-spacing:.14em;color:var(--ink-soft);margin-bottom:2px}
+.f-group a{font-size:13.5px;color:var(--ink-soft);text-decoration:none}
+.f-group a:hover{color:var(--teal)}
+.f-meta{border-top:1px solid var(--line);margin-top:30px;padding-top:16px;text-align:right;font-size:12px;color:var(--ink-soft);line-height:1.9}
+.f-meta a{color:var(--ink-soft)}
+.f-bottom{display:flex;align-items:center;gap:14px;margin-top:34px}
+.f-bottom img.logo-mark{border-radius:10px}
+.f-wordmark{font-family:"Noto Serif JP",serif;font-size:20px;font-weight:700;color:var(--ink)}
+.f-copy{font-size:11.5px;color:var(--ink-soft);margin-top:2px}
+@media (max-width:640px){.f-bottom{flex-direction:column;text-align:center}}
+</style>
+
+<style>
+.sc-presets{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 6px}
+.sc-preset{border:1px solid var(--teal);color:var(--teal);background:transparent;border-radius:999px;padding:6px 14px;font-size:.9rem;cursor:pointer}
+.sc-preset:hover{background:var(--teal);color:#fff}
+.sc-sec{margin:22px 0 8px;font-size:1.05rem}
+.sc-cats{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start;margin:8px 0}
+.sc-cat{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.sc-cat legend,.sc-cat .sc-cat-t{font-size:.85rem;color:var(--sub);margin-bottom:6px}
+.sc-checks{display:flex;flex-wrap:wrap;gap:6px 12px;max-width:520px}
+.sc-checks label{font-size:.88rem;white-space:nowrap}
+.sc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin:10px 0}
+.sc-card{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.sc-card h4{margin:0 0 2px;font-size:.95rem}
+.sc-card .sc-src{font-size:.72rem;color:var(--sub)}
+.sc-io{display:flex;gap:6px;align-items:center;margin-top:8px}
+.sc-io input{width:100%;min-width:0;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.sc-bar{height:6px;border-radius:3px;background:linear-gradient(90deg,#bfe3ea,#0b7285);position:relative;margin-top:10px}
+.sc-bar i{position:absolute;top:-3px;width:2px;height:12px;background:var(--ink)}
+.sc-card .sc-x{float:right;border:none;background:none;color:var(--sub);cursor:pointer;font-size:1rem}
+.sc-percap{font-size:.8rem;color:var(--sub);display:block;margin-top:6px}
+.sc-count{font-size:1.1rem;margin:18px 0 8px}
+.sc-count b{font-size:1.35rem}
+.sc-twrap{overflow-x:auto}
+table.sc-t{border-collapse:collapse;width:100%;font-size:.9rem;white-space:nowrap}
+table.sc-t th,table.sc-t td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:right}
+table.sc-t th:first-child,table.sc-t td:first-child,table.sc-t th:nth-child(2),table.sc-t td:nth-child(2){text-align:left}
+table.sc-t th{cursor:pointer;color:var(--teal)}
+.sc-relax{border:1px dashed var(--teal);border-radius:10px;padding:10px 14px;margin:12px 0}
+.sc-relax button{margin:4px 6px 0 0;border:1px solid var(--teal);background:none;color:var(--teal);border-radius:999px;padding:3px 12px;cursor:pointer}
+.sc-more{display:block;margin:14px auto;padding:8px 26px;border:1px solid var(--teal);color:var(--teal);background:none;border-radius:999px;cursor:pointer}
+.sc-add{display:flex;gap:8px;align-items:center;margin:10px 0}
+.sc-add select{padding:6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);max-width:100%}
+.sc-add button{border:1px solid var(--teal);color:var(--teal);background:none;border-radius:999px;padding:5px 16px;cursor:pointer}
+.sc-clear{border:none;background:none;color:var(--sub);cursor:pointer;text-decoration:underline;font-size:.85rem}
+details.sc-prefs summary{cursor:pointer;color:var(--teal);font-size:.9rem}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+
+<h1>自治体スクリーナー / Municipality Screener</h1>
+<p class="muted">全国1,741自治体を、人口や世帯、年齢構成、所得、財政などの公表統計で絞り込める道具です。データは jpopendata.jp の公開データセットから取得します（<span id="scSrcNote">https://jpopendata.jp/screener/screener-data.json</span>）。街名のリンクは jpopendata.jp の自治体ページへつながります。</p>
+<h2 class="sc-sec">プリセット</h2>
+<div class="sc-presets" id="scPresets"></div>
+<h2 class="sc-sec">地域・規模で絞る</h2>
+<div class="sc-cats">
+  <fieldset class="sc-cat"><legend>人口規模</legend><div class="sc-checks" id="scBands"></div></fieldset>
+  <fieldset class="sc-cat"><legend>特徴</legend><div class="sc-checks">
+    <label><input type="checkbox" id="scCoastal"> 海に面した街だけ</label>
+    <label><input type="checkbox" id="scRail"> 鉄道がある街だけ</label>
+  </div></fieldset>
+</div>
+<details class="sc-prefs"><summary>都道府県を選ぶ（複数可）</summary><div class="sc-checks" id="scPrefs" style="margin-top:8px"></div></details>
+<h2 class="sc-sec">指標の条件</h2>
+<div class="sc-grid" id="scHead"></div>
+<div class="sc-add"><span class="muted">詳細条件を追加：</span><select id="scAddSel"></select><button id="scAddBtn">追加</button>
+<button class="sc-clear" id="scClear">条件をすべてクリア</button></div>
+<div class="sc-grid" id="scDetail"></div>
+<h2 class="sc-sec" id="scResultHead">結果</h2>
+<p class="sc-count" id="scCount">読み込み中…</p>
+<div class="sc-relax" id="scRelax" style="display:none"></div>
+<div class="sc-twrap"><table class="sc-t" id="scTable"></table></div>
+<button class="sc-more" id="scMore" style="display:none">さらに表示</button>
+
+<h2 class="sc-sec">使える指標と出典</h2><p class="muted">条件に使っているのは公表統計だけです。推計値や独自の指数は使っていません。比率は、公表されている分子と分母から計算したものだけを載せ、計算式を添えています。</p><div class="sc-twrap"><table class="sc-t"><thead><tr><th style="text-align:left">指標</th><th style="text-align:left">単位</th><th style="text-align:left">出典</th><th style="text-align:left">注記・計算式</th></tr></thead><tbody><tr><td>総人口</td><td>人</td><td>総務省「国勢調査」</td><td>2025年国勢調査の確定値</td></tr><tr><td>人口増減率（2020→2025）</td><td>%</td><td>総務省「国勢調査」</td><td>計算式：2025年人口 ÷ 2020年人口 − 1</td></tr><tr><td>人口密度</td><td>人/km²</td><td>総務省「国勢調査」・国土地理院「面積調」</td><td>総人口 ÷ 総面積</td></tr><tr><td>世帯数</td><td>世帯</td><td>総務省「国勢調査」</td><td>2025年国勢調査</td></tr><tr><td>単身世帯比率</td><td>%</td><td>総務省「国勢調査」</td><td>計算式：単身世帯数 ÷ 世帯数（2025年国勢調査）</td></tr><tr><td>高齢化率</td><td>%</td><td>総務省「国勢調査」</td><td>65歳以上人口 ÷ 総人口（2025年国勢調査）</td></tr><tr><td>年少人口比率</td><td>%</td><td>総務省「国勢調査」</td><td>計算式：15歳未満人口 ÷ 総人口（2025年国勢調査）</td></tr><tr><td>生産年齢人口比率</td><td>%</td><td>総務省「国勢調査」</td><td>計算式：15〜64歳人口 ÷ 総人口（2025年国勢調査）</td></tr><tr><td>社会増減（転入−転出）</td><td>人</td><td>総務省「住民基本台帳人口移動報告」</td><td>年間の転入者数 − 転出者数</td></tr><tr><td>自然増減（出生−死亡）</td><td>人</td><td>厚生労働省「人口動態調査」</td><td>年間の出生数 − 死亡数</td></tr><tr><td>納税者1人あたり課税所得</td><td>千円</td><td>総務省「市町村税課税状況等の調」</td><td>所得水準の目安</td></tr><tr><td>財政力指数</td><td></td><td>総務省「地方財政状況調査」</td><td>1.0を超えると普通交付税の不交付団体</td></tr><tr><td>客室稼働率</td><td>%</td><td>国土交通省「宿泊旅行統計調査」</td><td>自治体所在ホテルの平均</td></tr><tr><td>飲食店数</td><td>店</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年</td></tr><tr><td>小売店数</td><td>店</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年</td></tr><tr><td>後期高齢化率（75歳以上）</td><td>%</td><td>総務省「国勢調査」</td><td>75歳以上人口 ÷ 総人口（2025年国勢調査）</td></tr><tr><td>高齢単身世帯比率</td><td>%</td><td>総務省「国勢調査」</td><td>計算式：高齢単身世帯数 ÷ 世帯数（2025年国勢調査）</td></tr><tr><td>外国人人口比率</td><td>%</td><td>総務省「国勢調査」</td><td>計算式：外国人人口 ÷ 総人口（2025年国勢調査）</td></tr><tr><td>転入者数</td><td>人</td><td>総務省「住民基本台帳人口移動報告」</td><td>年間の転入者数</td></tr><tr><td>転出者数</td><td>人</td><td>総務省「住民基本台帳人口移動報告」</td><td>年間の転出者数</td></tr><tr><td>出生数</td><td>人</td><td>厚生労働省「人口動態調査」</td><td>年間の出生数</td></tr><tr><td>死亡数</td><td>人</td><td>厚生労働省「人口動態調査」</td><td>年間の死亡数</td></tr><tr><td>事業所数</td><td>事業所</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年、民営事業所</td></tr><tr><td>従業者数</td><td>人</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年、民営事業所の従業者</td></tr><tr><td>従業者数÷常住人口（参考）</td><td>%</td><td>総務省・経済産業省「経済センサス‐活動調査」・総務省「国勢調査」</td><td>計算式：従業者数 ÷ 総人口。昼間の活気の目安</td></tr><tr><td>製造業の従業者数</td><td>人</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年</td></tr><tr><td>卸売・小売業の従業者数</td><td>人</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年</td></tr><tr><td>宿泊・飲食業の従業者数</td><td>人</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年</td></tr><tr><td>医療・福祉の従業者数</td><td>人</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年</td></tr><tr><td>情報通信業の従業者数</td><td>人</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年</td></tr><tr><td>大型小売店数</td><td>店</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年</td></tr><tr><td>病院数</td><td>施設</td><td>厚生労働省「医療施設調査」</td><td></td></tr><tr><td>一般診療所数</td><td>施設</td><td>厚生労働省「医療施設調査」</td><td></td></tr><tr><td>歯科診療所数</td><td>施設</td><td>厚生労働省「医療施設調査」</td><td></td></tr><tr><td>小学校数</td><td>校</td><td>文部科学省「学校基本調査」</td><td></td></tr><tr><td>中学校数</td><td>校</td><td>文部科学省「学校基本調査」</td><td></td></tr><tr><td>ふるさと納税の寄附件数</td><td>件</td><td>総務省「ふるさと納税現況調査」</td><td>2024年度</td></tr><tr><td>ふるさと納税の寄附金額</td><td>円</td><td>総務省「ふるさと納税現況調査」</td><td>2024年度</td></tr><tr><td>ふるさと納税（人口1人あたり）</td><td>円</td><td>総務省「ふるさと納税現況調査」</td><td>計算式：寄附金額 ÷ 総人口</td></tr><tr><td>不動産取引件数</td><td>件</td><td>国土交通省「不動産取引価格情報」</td><td>2005年以降の累計</td></tr><tr><td>交通事故件数（2023年）</td><td>件</td><td>警察庁「交通事故統計」</td><td>人身事故の件数</td></tr><tr><td>経常収支比率</td><td>%</td><td>総務省「地方財政状況調査」</td><td>低いほど財政に余裕があるとされる</td></tr><tr><td>地方税収（人口1人あたり）</td><td>円</td><td>総務省「地方財政状況調査」</td><td>計算式：地方税収 ÷ 総人口</td></tr><tr><td>インバウンド宿泊比率</td><td>%</td><td>国土交通省「宿泊旅行統計調査」</td><td>延べ宿泊者に占める外国人の割合</td></tr><tr><td>観光スポット数</td><td>件</td><td>全国観光資源の登録データの集計</td><td>Japan Open Data Lab が公的登録情報を集計</td></tr><tr><td>温泉地数</td><td>件</td><td>温泉地の登録データの集計</td><td>Japan Open Data Lab が公的登録情報を集計</td></tr><tr><td>道の駅数</td><td>駅</td><td>国土交通省「道の駅」登録情報の集計</td><td></td></tr><tr><td>ダム数</td><td>基</td><td>ダム登録情報の集計</td><td>Japan Open Data Lab が公的登録情報を集計</td></tr><tr><td>国指定文化財数</td><td>件</td><td>文化庁「文化財データベース」の集計</td><td></td></tr><tr><td>建物の築年数（中央値）</td><td>年</td><td>国土交通省「不動産取引価格情報」ほか</td><td>取引事例等からの中央値</td></tr><tr><td>旧耐震建物の割合</td><td>%</td><td>Project PLATEAU 建物属性ほか</td><td>1981年以前築の建物の割合</td></tr></tbody></table></div>
+<p class="muted">Standalone UI from the municipality-screener open-source package (Japan Open Data Lab, MIT). Live version: <a href="https://jpopendata.jp/screener/">https://jpopendata.jp/screener/</a></p>
+</div>
+
+<script>
+"use strict";
+let DATA = null, IND = [], IDX = {};
+const state = {conds: {}, prefs: new Set(), bands: new Set(), coastal: false, rail: false, sortId: 'pop', sortDir: -1, shown: 100};
+const BANDS = [['b1','1万人未満',0,9999],['b2','1万〜5万人',10000,49999],['b3','5万〜10万人',50000,99999],['b4','10万〜30万人',100000,299999],['b5','30万人以上',300000,Infinity]];
+const PRESETS = [
+ ['人口が増えている街', {popchg:{min:0.1}, pop:{min:3000}}],
+ ['単身世帯が多い街', {single:{min:40}, pop:{min:10000}}],
+ ['若い街', {youth:{min:12}, aging:{max:28}, pop:{min:5000}}],
+ ['所得水準が高い街', {income:{min:3400}}],
+ ['飲食店が多い街', {restaurants:{min:50, percap:true}, pop:{min:5000}}],
+ ['ふるさと納税が集まる街', {furu_pc:{min:50000}, pop:{min:1000}}],
+ ['観光の活気がある街', {occupancy:{min:55}}],
+ ['財政に余裕がある街', {fiscal:{min:0.8}}]
+];
+const $ = s => document.querySelector(s);
+function fmt(v, dec){ if(v===null||v===undefined) return '–'; return v.toLocaleString('ja-JP',{minimumFractionDigits:dec, maximumFractionDigits:dec}); }
+function val(row, id){ return row[5 + IDX[id]]; }
+function effVal(row, id, cond){ let v = val(row, id); if(cond && cond.percap){ const p = val(row,'pop'); v = p ? v / p * 10000 : null; } return v; }
+function pass(row, skip){
+  if(state.prefs.size && !state.prefs.has(row[1])) return false;
+  if(state.bands.size){ const p = val(row,'pop'); if(!BANDS.some(b => state.bands.has(b[0]) && p >= b[2] && p <= b[3])) return false; }
+  if(state.coastal && !row[3]) return false;
+  if(state.rail && !row[4]) return false;
+  for(const id in state.conds){
+    if(id === skip) continue;
+    const c = state.conds[id];
+    if(c.min === undefined && c.max === undefined) continue;
+    const v = effVal(row, id, c);
+    if(v === null) return false;
+    if(c.min !== undefined && v < c.min) return false;
+    if(c.max !== undefined && v > c.max) return false;
+  }
+  return true;
+}
+function filtered(skip){ return DATA.rows.filter(r => pass(r, skip)); }
+function activeCondIds(){ return Object.keys(state.conds).filter(id => state.conds[id].min !== undefined || state.conds[id].max !== undefined); }
+function render(){
+  const rows = filtered();
+  rows.sort((a,b) => { const va = effVal(a, state.sortId, state.conds[state.sortId]), vb = effVal(b, state.sortId, state.conds[state.sortId]); if(va === null && vb === null) return 0; if(va === null) return 1; if(vb === null) return -1; return (va - vb) * state.sortDir; });
+  $('#scCount').innerHTML = '全国1,741自治体のうち <b>' + rows.length.toLocaleString() + '件</b>';
+  const cols = ['name','pref','pop'];
+  for(const id of activeCondIds()) if(!cols.includes(id)) cols.push(id);
+  if(cols.length === 3) cols.push('popchg','aging','single');
+  const head = cols.map(id => {
+    if(id === 'name') return '<th data-s="name">自治体</th>';
+    if(id === 'pref') return '<th data-s="pref">都道府県</th>';
+    const m = IND[IDX[id]]; const arrow = state.sortId === id ? (state.sortDir === -1 ? ' ▼' : ' ▲') : '';
+    const label = m.label + (state.conds[id] && state.conds[id].percap ? '（1万人あたり）' : '');
+    return '<th data-s="' + id + '">' + label + arrow + '</th>';
+  }).join('');
+  const body = rows.slice(0, state.shown).map(r => '<tr>' + cols.map(id => {
+    if(id === 'name') return '<td><a href="https://jpopendata.jp/cities/' + r[0] + '/">' + r[2] + '</a></td>';
+    if(id === 'pref') return '<td>' + r[1] + '</td>';
+    const m = IND[IDX[id]];
+    return '<td>' + fmt(effVal(r, id, state.conds[id]), state.conds[id] && state.conds[id].percap ? 1 : m.dec) + '</td>';
+  }).join('') + '</tr>').join('');
+  $('#scTable').innerHTML = '<thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody>';
+  document.querySelectorAll('#scTable th[data-s]').forEach(th => th.addEventListener('click', () => {
+    const id = th.dataset.s; if(id === 'name' || id === 'pref') return;
+    if(state.sortId === id) state.sortDir *= -1; else { state.sortId = id; state.sortDir = -1; }
+    render();
+  }));
+  $('#scMore').style.display = rows.length > state.shown ? 'block' : 'none';
+  const rx = $('#scRelax');
+  if(rows.length === 0){
+    let html = '<p>条件に合う自治体がありませんでした。条件を1つ外すと：</p>';
+    const cands = [];
+    for(const id of activeCondIds()) cands.push([IND[IDX[id]].label + ' の条件', filtered(id).length, () => { delete state.conds[id]; syncCards(); }]);
+    if(state.prefs.size) cands.push(['都道府県の指定', DATA.rows.filter(r => pass2(r,'prefs')).length, () => { state.prefs.clear(); document.querySelectorAll('.sc-pref-cb').forEach(cb => cb.checked = false); }]);
+    if(state.bands.size) cands.push(['人口規模の指定', DATA.rows.filter(r => pass2(r,'bands')).length, () => { state.bands.clear(); document.querySelectorAll('.sc-band-cb').forEach(cb => cb.checked = false); }]);
+    if(state.coastal) cands.push(['「海に面した街だけ」', DATA.rows.filter(r => pass2(r,'coastal')).length, () => { state.coastal = false; $('#scCoastal').checked = false; }]);
+    if(state.rail) cands.push(['「鉄道がある街だけ」', DATA.rows.filter(r => pass2(r,'rail')).length, () => { state.rail = false; $('#scRail').checked = false; }]);
+    cands.sort((a,b) => b[1] - a[1]);
+    window._relax = cands;
+    html += cands.slice(0,5).map((c,i) => '<button data-r="' + i + '">' + c[0] + 'を外す（' + c[1] + '件）</button>').join('');
+    rx.innerHTML = html; rx.style.display = 'block';
+    rx.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { window._relax[+b.dataset.r][2](); saveHash(); render(); }));
+  } else { rx.style.display = 'none'; }
+}
+function pass2(row, skip){
+  const keepP = state.prefs, keepB = state.bands, keepC = state.coastal, keepR = state.rail;
+  if(skip === 'prefs') state.prefs = new Set();
+  if(skip === 'bands') state.bands = new Set();
+  if(skip === 'coastal') state.coastal = false;
+  if(skip === 'rail') state.rail = false;
+  const ok = pass(row);
+  state.prefs = keepP; state.bands = keepB; state.coastal = keepC; state.rail = keepR;
+  return ok;
+}
+function cardHtml(m, removable){
+  const c = state.conds[m.id] || {};
+  const pct = ((m.p50 - m.min) / (m.max - m.min) * 100).toFixed(1);
+  return '<div class="sc-card" data-id="' + m.id + '"><h4>' + m.label + (removable ? '<button class="sc-x" title="外す">×</button>' : '') + '</h4>'
+    + '<span class="sc-src">' + m.src + (m.note ? '｜' + m.note : '') + '</span>'
+    + '<div class="sc-io"><input type="number" class="sc-min" placeholder="最小" value="' + (c.min ?? '') + '"><span>〜</span><input type="number" class="sc-max" placeholder="最大" value="' + (c.max ?? '') + '"><span>' + (c.percap ? '件/万人' : m.unit) + '</span></div>'
+    + '<div class="sc-bar"><i style="left:' + pct + '%"></i></div>'
+    + '<span class="sc-src">最小 ' + fmt(m.min, m.dec) + '／中央 ' + fmt(m.p50, m.dec) + '／最大 ' + fmt(m.max, m.dec) + '</span>'
+    + (m.percap ? '<label class="sc-percap"><input type="checkbox" class="sc-pc" ' + (c.percap ? 'checked' : '') + '> 人口1万人あたりで比べる</label>' : '')
+    + '</div>';
+}
+function syncCards(){
+  $('#scHead').innerHTML = IND.filter(m => m.tier === 0).map(m => cardHtml(m, false)).join('');
+  $('#scDetail').innerHTML = IND.filter(m => m.tier === 1 && state.conds[m.id]).map(m => cardHtml(m, true)).join('');
+  bindCards($('#scHead')); bindCards($('#scDetail'));
+}
+function bindCards(root){
+  root.querySelectorAll('.sc-card').forEach(card => {
+    const id = card.dataset.id;
+    const upd = () => {
+      const mn = card.querySelector('.sc-min').value, mx = card.querySelector('.sc-max').value;
+      const pc = card.querySelector('.sc-pc');
+      const c = {};
+      if(mn !== '') c.min = parseFloat(mn);
+      if(mx !== '') c.max = parseFloat(mx);
+      if(pc && pc.checked) c.percap = true;
+      if(c.min === undefined && c.max === undefined && !c.percap) delete state.conds[id]; else state.conds[id] = c;
+      state.shown = 100; saveHash(); render();
+    };
+    card.querySelector('.sc-min').addEventListener('input', upd);
+    card.querySelector('.sc-max').addEventListener('input', upd);
+    const pc = card.querySelector('.sc-pc'); if(pc) pc.addEventListener('change', upd);
+    const x = card.querySelector('.sc-x'); if(x) x.addEventListener('click', () => { delete state.conds[id]; syncCards(); saveHash(); render(); });
+  });
+}
+function saveHash(){
+  const s = {c: state.conds, p: [...state.prefs], b: [...state.bands], co: state.coastal, ra: state.rail, s: state.sortId, d: state.sortDir};
+  history.replaceState(null, '', '#s=' + encodeURIComponent(JSON.stringify(s)));
+}
+function loadHash(){
+  if(!location.hash.startsWith('#s=')) return;
+  try {
+    const s = JSON.parse(decodeURIComponent(location.hash.slice(3)));
+    state.conds = s.c || {}; state.prefs = new Set(s.p || []); state.bands = new Set(s.b || []);
+    state.coastal = !!s.co; state.rail = !!s.ra; state.sortId = s.s || 'pop'; state.sortDir = s.d || -1;
+  } catch(e) {}
+}
+function applyStateToInputs(){
+  document.querySelectorAll('.sc-pref-cb').forEach(cb => cb.checked = state.prefs.has(cb.value));
+  document.querySelectorAll('.sc-band-cb').forEach(cb => cb.checked = state.bands.has(cb.value));
+  $('#scCoastal').checked = state.coastal; $('#scRail').checked = state.rail;
+  syncCards();
+}
+fetch(new URLSearchParams(location.search).get('data') || 'https://jpopendata.jp/screener/screener-data.json').then(r => r.json()).then(d => {
+  DATA = d; IND = d.indicators; IND.forEach((m,i) => IDX[m.id] = i);
+  const prefs = [...new Set(d.rows.map(r => r[1]))];
+  $('#scPrefs').innerHTML = prefs.map(p => '<label><input type="checkbox" class="sc-pref-cb" value="' + p + '"> ' + p + '</label>').join('');
+  $('#scBands').innerHTML = BANDS.map(b => '<label><input type="checkbox" class="sc-band-cb" value="' + b[0] + '"> ' + b[1] + '</label>').join('');
+  $('#scPresets').innerHTML = PRESETS.map((p,i) => '<button class="sc-preset" data-p="' + i + '">' + p[0] + '</button>').join('');
+  document.querySelectorAll('.sc-preset').forEach(b => b.addEventListener('click', () => {
+    const conds = PRESETS[+b.dataset.p][1];
+    state.conds = JSON.parse(JSON.stringify(conds)); state.prefs = new Set(); state.bands = new Set(); state.coastal = false; state.rail = false;
+    state.sortId = Object.keys(conds)[0]; state.sortDir = -1; state.shown = 100;
+    applyStateToInputs(); saveHash(); render();
+    document.getElementById('scResultHead').scrollIntoView({behavior:'smooth'});
+  }));
+  const sel = $('#scAddSel');
+  sel.innerHTML = IND.filter(m => m.tier === 1).map(m => '<option value="' + m.id + '">' + m.label + '</option>').join('');
+  $('#scAddBtn').addEventListener('click', () => { const id = sel.value; if(!state.conds[id]) state.conds[id] = {}; syncCards(); });
+  document.querySelectorAll('.sc-pref-cb').forEach(cb => cb.addEventListener('change', () => { cb.checked ? state.prefs.add(cb.value) : state.prefs.delete(cb.value); state.shown = 100; saveHash(); render(); }));
+  document.querySelectorAll('.sc-band-cb').forEach(cb => cb.addEventListener('change', () => { cb.checked ? state.bands.add(cb.value) : state.bands.delete(cb.value); state.shown = 100; saveHash(); render(); }));
+  $('#scCoastal').addEventListener('change', e => { state.coastal = e.target.checked; state.shown = 100; saveHash(); render(); });
+  $('#scRail').addEventListener('change', e => { state.rail = e.target.checked; state.shown = 100; saveHash(); render(); });
+  $('#scMore').addEventListener('click', () => { state.shown += 200; render(); });
+  $('#scClear').addEventListener('click', () => { state.conds = {}; state.prefs.clear(); state.bands.clear(); state.coastal = false; state.rail = false; applyStateToInputs(); saveHash(); render(); });
+  loadHash(); applyStateToInputs(); render();
+}).catch(() => { $('#scCount').textContent = 'データの読み込みに失敗しました。再読み込みしてください。'; });
+</script>
+
+</body>
+</html>
