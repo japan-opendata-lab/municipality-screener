@@ -31,7 +31,7 @@ def test_get_carries_sources():
 def test_compare_and_catalog():
     c = server.core_compare(['01100', '08220'], ['pop'])
     assert c['indicators']['pop']['values']['08220'] == 268832
-    assert len(server.core_list_indicators()['indicators']) == 51
+    assert len(server.core_list_indicators()['indicators']) == 50
 
 
 if __name__ == '__main__':

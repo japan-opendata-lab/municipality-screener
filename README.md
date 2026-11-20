@@ -7,7 +7,7 @@ Live version: https://jpopendata.jp/screener/ (operated by Japan Open Data Lab /
 This repository contains the code only. **The dataset is not bundled**: the UI and the MCP server fetch it at runtime from the public endpoint below, so every user always works on the same published data.
 
 - Dataset endpoint: `https://jpopendata.jp/screener/screener-data.json`
-- Dataset: 51 indicators × 1,741 municipalities, compiled from published Japanese government statistics. Per-indicator sources, survey years and formulas are listed in [DATA_SOURCES.md](DATA_SOURCES.md).
+- Dataset: 50 indicators × 1,741 municipalities, compiled from published Japanese government statistics. Per-indicator sources, survey years and formulas are listed in [DATA_SOURCES.md](DATA_SOURCES.md).
 - Dataset license: CC BY 4.0 for the compilation (Japan Open Data Lab). Where the terms of an original source differ, the original source prevails.
 - Code license: MIT (see [LICENSE](LICENSE)).
 - No estimated values and no proprietary indices are included. Ratios are computed only from published numerator/denominator columns, with the formula documented per indicator.
