@@ -42,6 +42,25 @@ footer{margin-top:56px;border-top:1px solid var(--line);padding-top:18px}
 /*FOOTER_CSS_INJECT*/
 .to-top{position:fixed;right:16px;bottom:16px;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--sub);cursor:pointer;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50}
 .to-top.show{opacity:1;pointer-events:auto}
+/* UI TYPES v1 (2026-11-19): site-wide design types. Tokens and components
+   defined once here; pages use these instead of inventing local styles.
+   Hologram internals (canvas) are out of scope. data-count stays the GSAP hook. */
+:root{--surface:#ffffff;--navy:#10293d;--focus:#0b7285;--bar-track:#e6edf0}
+:root[data-theme="dark"]{--surface:#0E1E33;--focus:#2FB3C6;--bar-track:#1b3350}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:4px}
+.num-big{font-size:28px;font-weight:800;line-height:1.25;color:var(--ink);font-variant-numeric:tabular-nums}
+.num-big .num-unit{font-size:14px;font-weight:700;color:var(--sub);margin-left:2px}
+.num-mid{font-size:20px;font-weight:800;line-height:1.3;color:var(--ink);font-variant-numeric:tabular-nums}
+.card-x{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+a.card-x{display:block;text-decoration:none;color:var(--ink)}
+a.card-x:hover{border-color:var(--teal)}
+.bar-row{display:flex;align-items:center;gap:10px;font-size:13.5px}
+.bar-row .bar-label{flex:0 0 7em;color:var(--sub)}
+.bar-row .bar-value{font-weight:700;font-variant-numeric:tabular-nums}
+.bar{flex:1;height:8px;background:var(--bar-track);border-radius:99px;overflow:hidden}
+.bar-fill{height:100%;background:var(--teal);border-radius:99px}
+.rank-badge{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 7px;border-radius:99px;background:var(--navy);color:#fff;font-size:13px;font-weight:800;font-variant-numeric:tabular-nums}
+.rank-badge.rank-1{background:var(--amber);color:#17242e}
 @media (max-width:640px){h1{font-size:24px}}
 :root[data-theme="dark"]{--bg:#081426;--ink:#E9EEF3;--sub:#9DB0C1;--line:#223850;--teal:#2FB3C6;color-scheme:dark}
 :root[data-theme="dark"] header.site,:root[data-theme="dark"] .gcard,:root[data-theme="dark"] .item,:root[data-theme="dark"] .note-box,:root[data-theme="dark"] .fact{background:#0E1E33}
@@ -52,7 +71,7 @@ footer{margin-top:56px;border-top:1px solid var(--line);padding-top:18px}
 .theme-toggle .ic-sun{display:none}
 :root[data-theme="dark"] .theme-toggle .ic-sun{display:block}
 :root[data-theme="dark"] .theme-toggle .ic-moon{display:none}
-.brand-logo{height:38px;width:auto;display:block}@media (max-width:640px){.brand-logo{height:31px}}:root[data-theme="dark"] .brand-logo{background:#fff;border-radius:8px;padding:2px 6px}
+.brand-logo{height:38px;width:auto;display:block}@media (max-width:640px){.brand-logo{height:31px}}:root[data-theme="dark"] .brand-logo{background:#fff;border-radius:8px;padding:2px 6px}:focus-visible{outline:3px solid var(--focus,#0b7285);outline-offset:2px}html[data-theme="dark"] :focus-visible{outline-color:#2FB3C6}
 
 /* common site header (standard nav) on types-chrome pages */
 .site-header{position:sticky;top:0;z-index:60}
@@ -105,44 +124,94 @@ footer{margin-top:56px;border-top:1px solid var(--line);padding-top:18px}
 .f-bottom img.logo-mark{border-radius:10px}
 .f-wordmark{font-family:"Noto Serif JP",serif;font-size:20px;font-weight:700;color:var(--ink)}
 .f-copy{font-size:11.5px;color:var(--ink-soft);margin-top:2px}
+.tab-bar{display:none}
+@media (max-width:640px){.tab-bar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:65;background:var(--surface,#fff);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}:root[data-theme="dark"] .tab-bar{background:#0E1E33}.tab-bar a{flex:1;text-align:center;padding:11px 0 9px;font-size:12.5px;font-weight:700;color:var(--sub,#5b6b76);text-decoration:none}.tab-bar a.active{color:var(--teal,#0b7285)}body{padding-bottom:58px}.to-top{bottom:74px!important}}
 @media (max-width:640px){.f-bottom{flex-direction:column;text-align:center}}
 </style>
 
 <style>
-.sc-presets{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 6px}
-.sc-preset{border:1px solid var(--teal);color:var(--teal);background:transparent;border-radius:999px;padding:6px 14px;font-size:.9rem;cursor:pointer}
-.sc-preset:hover{background:var(--teal);color:#fff}
-.sc-sec{margin:22px 0 8px;font-size:1.05rem}
-.sc-cats{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start;margin:8px 0}
-.sc-cat{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
-.sc-cat legend,.sc-cat .sc-cat-t{font-size:.85rem;color:var(--sub);margin-bottom:6px}
-.sc-checks{display:flex;flex-wrap:wrap;gap:6px 12px;max-width:520px}
-.sc-checks label{font-size:.88rem;white-space:nowrap}
-.sc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin:10px 0}
-.sc-card{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
-.sc-card h4{margin:0 0 2px;font-size:.95rem}
-.sc-card .sc-src{font-size:.72rem;color:var(--sub)}
+.sc-presets{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 8px}
+.sc-preset{border:1.5px solid var(--teal);color:var(--teal);background:var(--surface,#fff);border-radius:999px;padding:7px 14px;min-height:40px;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center}
+.sc-preset:hover,.sc-preset[aria-pressed="true"]{background:var(--teal);color:#fff}
+:root[data-theme="dark"] .sc-preset[aria-pressed="true"]{color:#08131a}
+.sc-sec{margin:24px 0 8px;font-size:1.08rem}
+.sc-cats{display:flex;flex-wrap:wrap;gap:12px;align-items:stretch;margin:8px 0}
+.sc-cat{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--surface,#fff);flex:1 1 280px}
+:root[data-theme="dark"] .sc-cat{background:#0E1E33}
+.sc-cat legend,.sc-cat .sc-cat-t{font-size:.85rem;font-weight:700;color:var(--sub);margin-bottom:6px;padding:0 4px}
+.sc-checks{display:flex;flex-wrap:wrap;gap:8px;max-width:560px}
+.sc-checks label{font-size:.88rem;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:5px 11px;border:1px solid var(--line);border-radius:999px;background:var(--bg);cursor:pointer}
+.sc-checks label:has(input:checked){border-color:var(--teal);background:rgba(11,114,133,.08);font-weight:700}
+.sc-checks input{width:16px;height:16px;accent-color:var(--teal)}
+.sc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin:10px 0}
+.sc-card{border:1px solid var(--line);border-radius:14px;padding:14px 15px;background:var(--surface,#fff)}
+:root[data-theme="dark"] .sc-card{background:#0E1E33}
+.sc-card.has-cond{border-color:var(--teal);box-shadow:0 0 0 1px var(--teal)}
+.sc-card h4{margin:0 0 3px;font-size:.95rem;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sc-card .sc-src{font-size:.75rem;color:var(--sub);display:block;margin-top:4px;font-variant-numeric:tabular-nums}
+.sc-card .sc-gloss{display:block;font-size:.82rem;color:var(--ink);margin:2px 0;line-height:1.5}
+.sc-card .sc-glink{display:inline-block;font-size:.8rem;margin:2px 0 4px;font-weight:600}
 .sc-io{display:flex;gap:6px;align-items:center;margin-top:8px}
-.sc-io input{width:100%;min-width:0;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.sc-io input{width:100%;min-width:0;min-height:40px;padding:7px 9px;font-size:16px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-variant-numeric:tabular-nums}
 .sc-bar{height:6px;border-radius:3px;background:linear-gradient(90deg,#bfe3ea,#0b7285);position:relative;margin-top:10px}
 .sc-bar i{position:absolute;top:-3px;width:2px;height:12px;background:var(--ink)}
-.sc-card .sc-x{float:right;border:none;background:none;color:var(--sub);cursor:pointer;font-size:1rem}
-.sc-percap{font-size:.8rem;color:var(--sub);display:block;margin-top:6px}
-.sc-count{font-size:1.1rem;margin:18px 0 8px}
-.sc-count b{font-size:1.35rem}
-.sc-twrap{overflow-x:auto}
-table.sc-t{border-collapse:collapse;width:100%;font-size:.9rem;white-space:nowrap}
-table.sc-t th,table.sc-t td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:right}
+.sc-card .sc-x{border:1px solid var(--line);background:var(--bg);color:var(--sub);cursor:pointer;font-size:1rem;min-width:36px;min-height:36px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
+.sc-card .sc-x:hover{border-color:var(--teal);color:var(--teal)}
+.sc-percap{font-size:.84rem;color:var(--ink);display:inline-flex;align-items:center;gap:6px;margin-top:8px;min-height:36px;cursor:pointer}
+.sc-percap input{width:16px;height:16px;accent-color:var(--teal)}
+.sc-cond-panel{margin:14px 0;border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--surface,#fff)}
+:root[data-theme="dark"] .sc-cond-panel{background:#0E1E33}
+.sc-cond-panel > summary{cursor:pointer;font-weight:700;font-size:1rem;color:var(--ink);list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:40px}
+.sc-cond-panel > summary::-webkit-details-marker{display:none}
+.sc-cond-sum-badge{font-size:.8rem;font-weight:700;color:var(--teal);background:rgba(11,114,133,.1);border-radius:999px;padding:3px 11px;white-space:nowrap}
+.sc-active-chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px;align-items:center}
+.sc-active-chip{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:4px 12px;border-radius:999px;background:rgba(11,114,133,.1);border:1px solid var(--teal);color:var(--ink);font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit}
+.sc-active-chip span{color:var(--teal);font-weight:800}
+.sc-count{font-size:1.1rem;margin:14px 0 8px;font-variant-numeric:tabular-nums}
+.sc-count b{font-size:1.38rem}
+.sc-twrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:12px;background:var(--surface,#fff)}
+:root[data-theme="dark"] .sc-twrap{background:#0E1E33}
+table.sc-t{border-collapse:separate;border-spacing:0;width:100%;font-size:.9rem;white-space:nowrap;font-variant-numeric:tabular-nums}
+table.sc-t th,table.sc-t td{border-bottom:1px solid var(--line);padding:9px 10px;text-align:right}
+table.sc-t th{background:var(--surface2,#f5f8fa);font-size:.82rem;color:var(--sub);font-weight:700;vertical-align:bottom}
+:root[data-theme="dark"] table.sc-t th{background:#132a44;color:var(--ink-soft)}
+table.sc-t th[data-sort="1"]{cursor:pointer;color:var(--teal)}
+table.sc-t th[data-sort="1"]:hover{text-decoration:underline}
+table.sc-t th .sc-th-unit{display:block;font-size:.72rem;font-weight:500;color:var(--sub)}
 table.sc-t th:first-child,table.sc-t td:first-child,table.sc-t th:nth-child(2),table.sc-t td:nth-child(2){text-align:left}
-table.sc-t th{cursor:pointer;color:var(--teal)}
-.sc-relax{border:1px dashed var(--teal);border-radius:10px;padding:10px 14px;margin:12px 0}
-.sc-relax button{margin:4px 6px 0 0;border:1px solid var(--teal);background:none;color:var(--teal);border-radius:999px;padding:3px 12px;cursor:pointer}
-.sc-more{display:block;margin:14px auto;padding:8px 26px;border:1px solid var(--teal);color:var(--teal);background:none;border-radius:999px;cursor:pointer}
-.sc-add{display:flex;gap:8px;align-items:center;margin:10px 0}
-.sc-add select{padding:6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);max-width:100%}
-.sc-add button{border:1px solid var(--teal);color:var(--teal);background:none;border-radius:999px;padding:5px 16px;cursor:pointer}
-.sc-clear{border:none;background:none;color:var(--sub);cursor:pointer;text-decoration:underline;font-size:.85rem}
-details.sc-prefs summary{cursor:pointer;color:var(--teal);font-size:.9rem}
+table.sc-t th:first-child,table.sc-t td:first-child{position:sticky;left:0;z-index:2;background:var(--surface,#fff);box-shadow:2px 0 6px rgba(11,31,58,.06);font-weight:700}
+table.sc-t th:first-child{background:var(--surface2,#f5f8fa);z-index:3}
+:root[data-theme="dark"] table.sc-t td:first-child{background:#0E1E33;box-shadow:2px 0 8px rgba(0,0,0,.35)}
+:root[data-theme="dark"] table.sc-t th:first-child{background:#132a44}
+table.sc-t tbody tr:nth-child(even) td{background:rgba(11,31,58,.018)}
+table.sc-t tbody tr:nth-child(even) td:first-child{background:var(--surface,#fff)}
+:root[data-theme="dark"] table.sc-t tbody tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+:root[data-theme="dark"] table.sc-t tbody tr:nth-child(even) td:first-child{background:#0E1E33}
+table.sc-t tbody tr:hover td{background:rgba(11,114,133,.06)}
+.sc-relax{border:1.5px dashed var(--teal);border-radius:12px;padding:12px 14px;margin:12px 0;background:var(--surface,#fff)}
+.sc-relax button{margin:6px 6px 0 0;border:1px solid var(--teal);background:none;color:var(--teal);border-radius:999px;padding:6px 14px;min-height:38px;cursor:pointer;font-family:inherit;font-weight:600}
+.sc-more{display:block;margin:14px auto;padding:10px 28px;min-height:46px;border:1.5px solid var(--teal);color:var(--teal);background:var(--surface,#fff);border-radius:999px;cursor:pointer;font-weight:700;font-family:inherit}
+.sc-add{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0}
+.sc-add select{padding:8px 10px;min-height:42px;font-size:15px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);max-width:100%;flex:1 1 200px}
+.sc-add button{border:1px solid var(--teal);color:var(--teal);background:none;border-radius:999px;padding:7px 16px;min-height:40px;cursor:pointer;font-weight:700;font-family:inherit}
+.sc-clear{border:none!important;background:none;color:var(--sub)!important;cursor:pointer;text-decoration:underline;font-size:.88rem}
+details.sc-prefs{margin:10px 0;border:1px solid var(--line);border-radius:12px;padding:10px 14px;background:var(--surface,#fff)}
+:root[data-theme="dark"] details.sc-prefs{background:#0E1E33}
+details.sc-prefs summary{cursor:pointer;color:var(--teal);font-size:.92rem;font-weight:700;min-height:36px;display:flex;align-items:center}
+details.sc-ref-details{margin:22px 0;border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--surface,#fff)}
+:root[data-theme="dark"] details.sc-ref-details{background:#0E1E33}
+details.sc-ref-details summary{cursor:pointer;font-weight:700;font-size:1rem;color:var(--ink);min-height:38px;display:flex;align-items:center}
+table.sc-ref{white-space:normal}
+table.sc-ref th,table.sc-ref td{text-align:left!important;position:static!important;box-shadow:none!important;background:transparent!important}
+.tbl-hint{display:none;font-size:12px;color:var(--sub);margin:4px 0 6px}
+.sc-sticky-bar{display:none}
+@media (max-width:640px){
+  .tbl-hint{display:block}
+  .sc-sticky-bar{display:flex;position:fixed;left:12px;right:12px;bottom:calc(62px + env(safe-area-inset-bottom));z-index:54;align-items:center;justify-content:space-between;gap:10px;background:var(--navy,#10293d);color:#fff;padding:10px 14px;border-radius:12px;box-shadow:0 8px 24px rgba(11,31,58,.25);font-size:13.5px;transition:opacity .2s ease,transform .2s ease}
+  .sc-sticky-bar.is-hidden{opacity:0;pointer-events:none;transform:translateY(8px)}
+  .sc-sticky-bar b{font-size:16px;font-variant-numeric:tabular-nums}
+  .sc-sticky-bar a{background:var(--amber,#F59E0B);color:#17242e;font-weight:700;text-decoration:none;border-radius:999px;padding:7px 14px;min-height:36px;display:inline-flex;align-items:center;white-space:nowrap}
+}
 </style>
 
 </head>
@@ -173,7 +242,7 @@ details.sc-prefs summary{cursor:pointer;color:var(--teal);font-size:.9rem}
 <div class="sc-twrap"><table class="sc-t" id="scTable"></table></div>
 <button class="sc-more" id="scMore" style="display:none">さらに表示</button>
 
-<h2 class="sc-sec">使える指標と出典</h2><p class="muted">条件に使っているのは公表統計だけです。推計値や独自の指数は使っていません。比率は、公表されている分子と分母から計算したものだけを載せ、計算式を添えています。</p><div class="sc-twrap"><table class="sc-t"><thead><tr><th style="text-align:left">指標</th><th style="text-align:left">単位</th><th style="text-align:left">出典</th><th style="text-align:left">注記・計算式</th></tr></thead><tbody><tr><td>総人口</td><td>人</td><td>総務省「国勢調査」</td><td>2025年国勢調査の確定値</td></tr><tr><td>人口増減率（2020→2025）</td><td>%</td><td>総務省「国勢調査」</td><td>計算式：2025年人口 ÷ 2020年人口 − 1</td></tr><tr><td>人口密度</td><td>人/km²</td><td>総務省「国勢調査」・国土地理院「面積調」</td><td>総人口 ÷ 総面積</td></tr><tr><td>世帯数</td><td>世帯</td><td>総務省「国勢調査」</td><td>2025年国勢調査</td></tr><tr><td>単身世帯比率</td><td>%</td><td>総務省「国勢調査」</td><td>計算式：単身世帯数 ÷ 世帯数（2025年国勢調査）</td></tr><tr><td>高齢化率</td><td>%</td><td>総務省「国勢調査」</td><td>65歳以上人口 ÷ 総人口（2025年国勢調査）</td></tr><tr><td>年少人口比率</td><td>%</td><td>総務省「国勢調査」</td><td>計算式：15歳未満人口 ÷ 総人口（2025年国勢調査）</td></tr><tr><td>生産年齢人口比率</td><td>%</td><td>総務省「国勢調査」</td><td>計算式：15〜64歳人口 ÷ 総人口（2025年国勢調査）</td></tr><tr><td>社会増減（転入−転出）</td><td>人</td><td>総務省「住民基本台帳人口移動報告」</td><td>年間の転入者数 − 転出者数</td></tr><tr><td>自然増減（出生−死亡）</td><td>人</td><td>厚生労働省「人口動態調査」</td><td>年間の出生数 − 死亡数</td></tr><tr><td>納税者1人あたり課税所得</td><td>千円</td><td>総務省「市町村税課税状況等の調」</td><td>所得水準の目安</td></tr><tr><td>財政力指数</td><td></td><td>総務省「地方財政状況調査」</td><td>1.0を超えると普通交付税の不交付団体</td></tr><tr><td>客室稼働率</td><td>%</td><td>国土交通省「宿泊旅行統計調査」</td><td>自治体所在ホテルの平均</td></tr><tr><td>飲食店数</td><td>店</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年</td></tr><tr><td>小売店数</td><td>店</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年</td></tr><tr><td>後期高齢化率（75歳以上）</td><td>%</td><td>総務省「国勢調査」</td><td>75歳以上人口 ÷ 総人口（2025年国勢調査）</td></tr><tr><td>高齢単身世帯比率</td><td>%</td><td>総務省「国勢調査」</td><td>計算式：高齢単身世帯数 ÷ 世帯数（2025年国勢調査）</td></tr><tr><td>外国人人口比率</td><td>%</td><td>総務省「国勢調査」</td><td>計算式：外国人人口 ÷ 総人口（2025年国勢調査）</td></tr><tr><td>転入者数</td><td>人</td><td>総務省「住民基本台帳人口移動報告」</td><td>年間の転入者数</td></tr><tr><td>転出者数</td><td>人</td><td>総務省「住民基本台帳人口移動報告」</td><td>年間の転出者数</td></tr><tr><td>出生数</td><td>人</td><td>厚生労働省「人口動態調査」</td><td>年間の出生数</td></tr><tr><td>死亡数</td><td>人</td><td>厚生労働省「人口動態調査」</td><td>年間の死亡数</td></tr><tr><td>事業所数</td><td>事業所</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年、民営事業所</td></tr><tr><td>従業者数</td><td>人</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年、民営事業所の従業者</td></tr><tr><td>従業者数÷常住人口（参考）</td><td>%</td><td>総務省・経済産業省「経済センサス‐活動調査」・総務省「国勢調査」</td><td>計算式：従業者数 ÷ 総人口。昼間の活気の目安</td></tr><tr><td>製造業の従業者数</td><td>人</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年</td></tr><tr><td>卸売・小売業の従業者数</td><td>人</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年</td></tr><tr><td>宿泊・飲食業の従業者数</td><td>人</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年</td></tr><tr><td>医療・福祉の従業者数</td><td>人</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年</td></tr><tr><td>情報通信業の従業者数</td><td>人</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年</td></tr><tr><td>大型小売店数</td><td>店</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年</td></tr><tr><td>病院数</td><td>施設</td><td>厚生労働省「医療施設調査」</td><td></td></tr><tr><td>一般診療所数</td><td>施設</td><td>厚生労働省「医療施設調査」</td><td></td></tr><tr><td>歯科診療所数</td><td>施設</td><td>厚生労働省「医療施設調査」</td><td></td></tr><tr><td>小学校数</td><td>校</td><td>文部科学省「学校基本調査」</td><td></td></tr><tr><td>中学校数</td><td>校</td><td>文部科学省「学校基本調査」</td><td></td></tr><tr><td>ふるさと納税の寄附件数</td><td>件</td><td>総務省「ふるさと納税現況調査」</td><td>2024年度</td></tr><tr><td>ふるさと納税の寄附金額</td><td>円</td><td>総務省「ふるさと納税現況調査」</td><td>2024年度</td></tr><tr><td>ふるさと納税（人口1人あたり）</td><td>円</td><td>総務省「ふるさと納税現況調査」</td><td>計算式：寄附金額 ÷ 総人口</td></tr><tr><td>不動産取引件数</td><td>件</td><td>国土交通省「不動産取引価格情報」</td><td>2005年以降の累計</td></tr><tr><td>交通事故件数（2023年）</td><td>件</td><td>警察庁「交通事故統計」</td><td>人身事故の件数</td></tr><tr><td>経常収支比率</td><td>%</td><td>総務省「地方財政状況調査」</td><td>低いほど財政に余裕があるとされる</td></tr><tr><td>地方税収（人口1人あたり）</td><td>円</td><td>総務省「地方財政状況調査」</td><td>計算式：地方税収 ÷ 総人口</td></tr><tr><td>インバウンド宿泊比率</td><td>%</td><td>国土交通省「宿泊旅行統計調査」</td><td>延べ宿泊者に占める外国人の割合</td></tr><tr><td>観光スポット数</td><td>件</td><td>全国観光資源の登録データの集計</td><td>Japan Open Data Lab が公的登録情報を集計</td></tr><tr><td>温泉地数</td><td>件</td><td>温泉地の登録データの集計</td><td>Japan Open Data Lab が公的登録情報を集計</td></tr><tr><td>道の駅数</td><td>駅</td><td>国土交通省「道の駅」登録情報の集計</td><td></td></tr><tr><td>ダム数</td><td>基</td><td>ダム登録情報の集計</td><td>Japan Open Data Lab が公的登録情報を集計</td></tr><tr><td>国指定文化財数</td><td>件</td><td>文化庁「文化財データベース」の集計</td><td></td></tr><tr><td>建物の築年数（中央値）</td><td>年</td><td>国土交通省「不動産取引価格情報」ほか</td><td>取引事例等からの中央値</td></tr><tr><td>旧耐震建物の割合</td><td>%</td><td>Project PLATEAU 建物属性ほか</td><td>1981年以前築の建物の割合</td></tr></tbody></table></div>
+<details class="sc-ref-details"><summary>使える指標と出典（全50指標の定義・計算式）</summary><p class="muted" style="margin-top:8px">条件に使っているのは公表統計だけです。推計値や独自の指数は使っていません。比率は、公表されている分子と分母から計算したものだけを載せ、計算式を添えています。</p><div class="sc-twrap"><table class="sc-t"><thead><tr><th style="text-align:left">指標</th><th style="text-align:left">単位</th><th style="text-align:left">出典</th><th style="text-align:left">注記・計算式</th></tr></thead><tbody><tr><td>総人口</td><td>人</td><td>総務省「国勢調査」</td><td>2025年国勢調査の確定値</td></tr><tr><td>人口増減率（2020→2025）<br><span class="muted">5年間で人口がどれだけ増えた・減ったか</span></td><td>%</td><td>総務省「国勢調査」</td><td>計算式：2025年人口 ÷ 2020年人口 − 1</td></tr><tr><td>人口密度</td><td>人/km²</td><td>総務省「国勢調査」・国土地理院「面積調」</td><td>総人口 ÷ 総面積</td></tr><tr><td>世帯数</td><td>世帯</td><td>総務省「国勢調査」</td><td>2025年国勢調査</td></tr><tr><td>単身世帯比率<br><span class="muted">全世帯のうち一人暮らしの世帯の割合</span><br><a href="/glossary/single-household-ratio/">この指標の解説</a></td><td>%</td><td>総務省「国勢調査」</td><td>計算式：単身世帯数 ÷ 世帯数（2025年国勢調査）</td></tr><tr><td>高齢化率<br><span class="muted">人口のうち65歳以上の人の割合</span><br><a href="/glossary/aging-rate/">この指標の解説</a></td><td>%</td><td>総務省「国勢調査」</td><td>65歳以上人口 ÷ 総人口（2025年国勢調査）</td></tr><tr><td>年少人口比率<br><span class="muted">人口のうち15歳未満の割合</span></td><td>%</td><td>総務省「国勢調査」</td><td>計算式：15歳未満人口 ÷ 総人口（2025年国勢調査）</td></tr><tr><td>生産年齢人口比率<br><span class="muted">人口のうち15〜64歳の割合</span></td><td>%</td><td>総務省「国勢調査」</td><td>計算式：15〜64歳人口 ÷ 総人口（2025年国勢調査）</td></tr><tr><td>社会増減（転入−転出）<br><span class="muted">引っ越しで入ってきた人と出ていった人の差</span></td><td>人</td><td>総務省「住民基本台帳人口移動報告」</td><td>年間の転入者数 − 転出者数</td></tr><tr><td>自然増減（出生−死亡）<br><span class="muted">生まれた人と亡くなった人の差</span></td><td>人</td><td>厚生労働省「人口動態調査」</td><td>年間の出生数 − 死亡数</td></tr><tr><td>納税者1人あたり課税所得<br><span class="muted">住民の所得水準の目安（税金の計算の元になる所得の平均）</span><br><a href="/glossary/taxable-income-per-taxpayer/">この指標の解説</a></td><td>千円</td><td>総務省「市町村税課税状況等の調」</td><td>所得水準の目安</td></tr><tr><td>財政力指数<br><span class="muted">1に近いほど、国の交付金に頼らず自前の収入で運営できる度合い</span><br><a href="/glossary/fiscal-strength-index/">この指標の解説</a></td><td></td><td>総務省「地方公共団体の主要財政指標一覧」</td><td>1.0を超えると普通交付税の不交付団体（令和6年度）</td></tr><tr><td>客室稼働率<br><span class="muted">ホテルや旅館の部屋がどれだけ使われているか</span><br><a href="/glossary/hotel-occupancy-rate/">この指標の解説</a></td><td>%</td><td>国土交通省「宿泊旅行統計調査」</td><td>都道府県単位の公表値を各自治体に表示</td></tr><tr><td>飲食店数</td><td>店</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年</td></tr><tr><td>小売店数</td><td>店</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年</td></tr><tr><td>後期高齢化率（75歳以上）<br><span class="muted">人口のうち75歳以上の人の割合</span></td><td>%</td><td>総務省「国勢調査」</td><td>75歳以上人口 ÷ 総人口（2025年国勢調査）</td></tr><tr><td>高齢単身世帯比率<br><span class="muted">全世帯のうち、65歳以上で一人暮らしの世帯の割合</span></td><td>%</td><td>総務省「国勢調査」</td><td>計算式：高齢単身世帯数 ÷ 世帯数（2025年国勢調査）</td></tr><tr><td>外国人人口比率<br><span class="muted">人口のうち外国人の割合</span></td><td>%</td><td>総務省「国勢調査」</td><td>計算式：外国人人口 ÷ 総人口（2025年国勢調査）</td></tr><tr><td>転入者数</td><td>人</td><td>総務省「住民基本台帳人口移動報告」</td><td>年間の転入者数</td></tr><tr><td>転出者数</td><td>人</td><td>総務省「住民基本台帳人口移動報告」</td><td>年間の転出者数</td></tr><tr><td>出生数</td><td>人</td><td>厚生労働省「人口動態調査」</td><td>年間の出生数</td></tr><tr><td>死亡数</td><td>人</td><td>厚生労働省「人口動態調査」</td><td>年間の死亡数</td></tr><tr><td>事業所数</td><td>事業所</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年、民営事業所</td></tr><tr><td>従業者数</td><td>人</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年、民営事業所の従業者</td></tr><tr><td>従業者数÷常住人口（参考）<br><span class="muted">住んでいる人に対して、その街で働く人がどれくらいいるか。高いと昼間に人が集まる街</span></td><td>%</td><td>総務省・経済産業省「経済センサス‐活動調査」・総務省「国勢調査」</td><td>計算式：従業者数 ÷ 総人口。昼間の活気の目安</td></tr><tr><td>昼間人口<br><span class="muted">昼間にその街にいる人の数。通勤・通学での出入りを反映した実数（2020年国勢調査ベース）</span></td><td>人</td><td>総務省統計局「統計でみる市区町村のすがた（SSDS）」</td><td>2020年国勢調査ベースの実数（基礎データ表 A6107）</td></tr><tr><td>昼夜間人口比率<br><span class="muted">夜の人口を100とした昼の人口。100を超えると昼に人が増える街</span><br><a href="/glossary/daytime-population-ratio/">この指標の解説</a></td><td>%</td><td>総務省統計局「統計でみる市区町村のすがた（SSDS）」</td><td>計算式：昼間人口 ÷ 夜間人口（常住人口）×100。2020年国勢調査ベース</td></tr><tr><td>製造業の従業者数</td><td>人</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年</td></tr><tr><td>卸売・小売業の従業者数</td><td>人</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年</td></tr><tr><td>宿泊・飲食業の従業者数</td><td>人</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年</td></tr><tr><td>医療・福祉の従業者数</td><td>人</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年</td></tr><tr><td>情報通信業の従業者数</td><td>人</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年</td></tr><tr><td>大型小売店数</td><td>店</td><td>総務省・経済産業省「経済センサス‐活動調査」</td><td>2021年</td></tr><tr><td>一般病院数</td><td>施設</td><td>厚生労働省「医療施設調査」</td><td>一般病院の数（病院の総数とは別の区分）</td></tr><tr><td>一般診療所数</td><td>施設</td><td>厚生労働省「医療施設調査」</td><td></td></tr><tr><td>歯科診療所数</td><td>施設</td><td>厚生労働省「医療施設調査」</td><td></td></tr><tr><td>小学校数</td><td>校</td><td>文部科学省「学校基本調査」</td><td></td></tr><tr><td>中学校数</td><td>校</td><td>文部科学省「学校基本調査」</td><td></td></tr><tr><td>ふるさと納税の寄附件数</td><td>件</td><td>総務省「ふるさと納税現況調査」</td><td>2025年度</td></tr><tr><td>ふるさと納税の寄附金額</td><td>円</td><td>総務省「ふるさと納税現況調査」</td><td>2025年度</td></tr><tr><td>ふるさと納税（人口1人あたり）<br><span class="muted">寄附の集まり具合の目安（金額を人口で割った値）</span></td><td>円</td><td>総務省「ふるさと納税現況調査」</td><td>計算式：寄附金額 ÷ 総人口</td></tr><tr><td>不動産取引件数</td><td>件</td><td>国土交通省「不動産取引価格情報」</td><td>2005年以降の累計</td></tr><tr><td>交通事故件数（2023年）</td><td>件</td><td>警察庁「交通事故統計」</td><td>人身事故の件数</td></tr><tr><td>経常収支比率<br><span class="muted">毎年の収入のうち、人件費など必ずかかる費用に消える割合。低いほど余裕がある</span><br><a href="/glossary/ordinary-balance-ratio/">この指標の解説</a></td><td>%</td><td>総務省「地方財政状況調査」</td><td>低いほど財政に余裕があるとされる</td></tr><tr><td>地方税収（人口1人あたり）<br><span class="muted">市町村の税収を、住民1人あたりに換算した金額</span></td><td>円</td><td>総務省「地方財政状況調査」</td><td>計算式：地方税収 ÷ 総人口</td></tr><tr><td>インバウンド宿泊比率<br><span class="muted">宿泊客のうち外国人旅行者の割合</span></td><td>%</td><td>国土交通省「宿泊旅行統計調査」</td><td>延べ宿泊者に占める外国人の割合（都道府県単位の公表値を各自治体に表示）</td></tr><tr><td>道の駅数</td><td>駅</td><td>国土交通省「道の駅」登録情報の集計</td><td></td></tr><tr><td>ダム数</td><td>基</td><td>ダム登録情報の集計</td><td>Japan Open Data Lab が公的登録情報を集計</td></tr><tr><td>建物の築年数（中央値）<br><span class="muted">建物の築年数の真ん中の値。大きいほど古い建物が多い</span></td><td>年</td><td>国土交通省「不動産取引価格情報」ほか</td><td>取引事例等からの中央値</td></tr><tr><td>旧耐震建物の割合<br><span class="muted">1981年の新耐震基準より前に建てられた建物の割合</span></td><td>%</td><td>Project PLATEAU 建物属性ほか</td><td>1981年以前築の建物の割合</td></tr></tbody></table></div></details>
 <p class="muted">Standalone UI from the municipality-screener open-source package (Japan Open Data Lab, MIT). Live version: <a href="https://jpopendata.jp/screener/">https://jpopendata.jp/screener/</a></p>
 </div>
 
@@ -189,10 +258,11 @@ const PRESETS = [
  ['所得水準が高い街', {income:{min:3400}}],
  ['飲食店が多い街', {restaurants:{min:50, percap:true}, pop:{min:5000}}],
  ['ふるさと納税が集まる街', {furu_pc:{min:50000}, pop:{min:1000}}],
- ['観光の活気がある街', {occupancy:{min:55}}],
+ ['観光の活気がある街', {emp_food:{min:500, percap:true}}],
  ['財政に余裕がある街', {fiscal:{min:0.8}}]
 ];
 const $ = s => document.querySelector(s);
+function prefersReducedMotion(){ return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
 function fmt(v, dec){ if(v===null||v===undefined) return '–'; return v.toLocaleString('ja-JP',{minimumFractionDigits:dec, maximumFractionDigits:dec}); }
 function val(row, id){ return row[5 + IDX[id]]; }
 function effVal(row, id, cond){ let v = val(row, id); if(cond && cond.percap){ const p = val(row,'pop'); v = p ? v / p * 10000 : null; } return v; }
@@ -214,19 +284,63 @@ function pass(row, skip){
 }
 function filtered(skip){ return DATA.rows.filter(r => pass(r, skip)); }
 function activeCondIds(){ return Object.keys(state.conds).filter(id => state.conds[id].min !== undefined || state.conds[id].max !== undefined); }
+function syncPresetHighlight(){
+  const curJson = JSON.stringify(state.conds);
+  document.querySelectorAll('.sc-preset').forEach((b, i) => {
+    const match = !state.prefs.size && !state.bands.size && !state.coastal && !state.rail && JSON.stringify(PRESETS[i][1]) === curJson;
+    b.setAttribute('aria-pressed', match ? 'true' : 'false');
+  });
+}
+function renderActiveChips(){
+  const box = $('#scActiveChips');
+  const badge = $('#scCondBadge');
+  const ac = activeCondIds();
+  if(badge) badge.textContent = ac.length + '件設定中';
+  if(!box) return;
+  const chips = [];
+  if(state.prefs.size) chips.push({label:'都道府県: ' + [...state.prefs].join('・'), fn:() => { state.prefs.clear(); document.querySelectorAll('.sc-pref-cb').forEach(cb => cb.checked = false); }});
+  state.bands.forEach(bid => {
+    const bm = BANDS.find(x => x[0] === bid);
+    if(bm) chips.push({label:'規模: ' + bm[1], fn:() => { state.bands.delete(bid); document.querySelectorAll('.sc-band-cb').forEach(cb => { if(cb.value === bid) cb.checked = false; }); }});
+  });
+  if(state.coastal) chips.push({label:'海に面した街だけ', fn:() => { state.coastal = false; $('#scCoastal').checked = false; }});
+  if(state.rail) chips.push({label:'鉄道がある街だけ', fn:() => { state.rail = false; $('#scRail').checked = false; }});
+  ac.forEach(id => {
+    const m = IND[IDX[id]], c = state.conds[id];
+    const unit = c.percap ? '件/万人' : (m.unit || '');
+    const rng = (c.min !== undefined ? c.min : '') + '〜' + (c.max !== undefined ? c.max : '');
+    chips.push({label: m.label + ': ' + rng + unit, fn:() => { delete state.conds[id]; syncCards(); }});
+  });
+  if(!chips.length){ box.innerHTML = ''; return; }
+  box.innerHTML = chips.map((ch, i) => '<button type="button" class="sc-active-chip" data-chip="' + i + '" aria-label="' + ch.label + ' を解除">' + ch.label + ' <span aria-hidden="true">×</span></button>').join('')
+    + '<button type="button" class="sc-clear" id="scChipsClear">すべて解除</button>';
+  box.querySelectorAll('.sc-active-chip').forEach(btn => btn.addEventListener('click', () => {
+    chips[+btn.dataset.chip].fn(); state.shown = 100; saveHash(); render();
+  }));
+  const cc = $('#scChipsClear');
+  if(cc) cc.addEventListener('click', () => { $('#scClear').click(); });
+}
 function render(){
   const rows = filtered();
   rows.sort((a,b) => { const va = effVal(a, state.sortId, state.conds[state.sortId]), vb = effVal(b, state.sortId, state.conds[state.sortId]); if(va === null && vb === null) return 0; if(va === null) return 1; if(vb === null) return -1; return (va - vb) * state.sortDir; });
   $('#scCount').innerHTML = '全国1,741自治体のうち <b>' + rows.length.toLocaleString() + '件</b>';
+  const stTxt = $('#scStickyText');
+  if(stTxt) stTxt.innerHTML = '該当 <b>' + rows.length.toLocaleString() + '件</b> / 1,741';
+  syncPresetHighlight();
+  renderActiveChips();
   const cols = ['name','pref','pop'];
   for(const id of activeCondIds()) if(!cols.includes(id)) cols.push(id);
   if(cols.length === 3) cols.push('popchg','aging','single');
   const head = cols.map(id => {
-    if(id === 'name') return '<th data-s="name">自治体</th>';
-    if(id === 'pref') return '<th data-s="pref">都道府県</th>';
-    const m = IND[IDX[id]]; const arrow = state.sortId === id ? (state.sortDir === -1 ? ' ▼' : ' ▲') : '';
-    const label = m.label + (state.conds[id] && state.conds[id].percap ? '（1万人あたり）' : '');
-    return '<th data-s="' + id + '">' + label + arrow + '</th>';
+    if(id === 'name') return '<th scope="col">自治体</th>';
+    if(id === 'pref') return '<th scope="col">都道府県</th>';
+    const m = IND[IDX[id]];
+    const active = state.sortId === id;
+    const arrow = active ? (state.sortDir === -1 ? ' ▼' : ' ▲') : ' ↕';
+    const ariaSort = active ? (state.sortDir === -1 ? 'descending' : 'ascending') : 'none';
+    const pc = state.conds[id] && state.conds[id].percap;
+    const unit = pc ? '1万人あたり' : (m.unit || '');
+    return '<th scope="col" data-s="' + id + '" data-sort="1" tabindex="0" aria-sort="' + ariaSort + '">' + m.label + arrow + (unit ? '<span class="sc-th-unit">(' + unit + ')</span>' : '') + '</th>';
   }).join('');
   const body = rows.slice(0, state.shown).map(r => '<tr>' + cols.map(id => {
     if(id === 'name') return '<td><a href="https://jpopendata.jp/cities/' + r[0] + '/">' + r[2] + '</a></td>';
@@ -235,15 +349,19 @@ function render(){
     return '<td>' + fmt(effVal(r, id, state.conds[id]), state.conds[id] && state.conds[id].percap ? 1 : m.dec) + '</td>';
   }).join('') + '</tr>').join('');
   $('#scTable').innerHTML = '<thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody>';
-  document.querySelectorAll('#scTable th[data-s]').forEach(th => th.addEventListener('click', () => {
-    const id = th.dataset.s; if(id === 'name' || id === 'pref') return;
-    if(state.sortId === id) state.sortDir *= -1; else { state.sortId = id; state.sortDir = -1; }
-    render();
-  }));
+  document.querySelectorAll('#scTable th[data-sort="1"]').forEach(th => {
+    const doSort = () => {
+      const id = th.dataset.s;
+      if(state.sortId === id) state.sortDir *= -1; else { state.sortId = id; state.sortDir = -1; }
+      saveHash(); render();
+    };
+    th.addEventListener('click', doSort);
+    th.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); doSort(); } });
+  });
   $('#scMore').style.display = rows.length > state.shown ? 'block' : 'none';
   const rx = $('#scRelax');
   if(rows.length === 0){
-    let html = '<p>条件に合う自治体がありませんでした。条件を1つ外すと：</p>';
+    let html = '<p><img src="/jodoru-think.webp" alt="" width="72" height="72" style="vertical-align:middle;margin-right:10px">条件に合う自治体がありませんでした。条件を1つ外すと：</p>';
     const cands = [];
     for(const id of activeCondIds()) cands.push([IND[IDX[id]].label + ' の条件', filtered(id).length, () => { delete state.conds[id]; syncCards(); }]);
     if(state.prefs.size) cands.push(['都道府県の指定', DATA.rows.filter(r => pass2(r,'prefs')).length, () => { state.prefs.clear(); document.querySelectorAll('.sc-pref-cb').forEach(cb => cb.checked = false); }]);
@@ -252,7 +370,7 @@ function render(){
     if(state.rail) cands.push(['「鉄道がある街だけ」', DATA.rows.filter(r => pass2(r,'rail')).length, () => { state.rail = false; $('#scRail').checked = false; }]);
     cands.sort((a,b) => b[1] - a[1]);
     window._relax = cands;
-    html += cands.slice(0,5).map((c,i) => '<button data-r="' + i + '">' + c[0] + 'を外す（' + c[1] + '件）</button>').join('');
+    html += cands.slice(0,5).map((c,i) => '<button type="button" data-r="' + i + '">' + c[0] + 'を外す（' + c[1] + '件）</button>').join('');
     rx.innerHTML = html; rx.style.display = 'block';
     rx.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { window._relax[+b.dataset.r][2](); saveHash(); render(); }));
   } else { rx.style.display = 'none'; }
@@ -267,12 +385,16 @@ function pass2(row, skip){
   state.prefs = keepP; state.bands = keepB; state.coastal = keepC; state.rail = keepR;
   return ok;
 }
+const GLOSSARY = {fiscal: 'fiscal-strength-index', balance: 'ordinary-balance-ratio', aging: 'aging-rate', single: 'single-household-ratio', income: 'taxable-income-per-taxpayer', occupancy: 'hotel-occupancy-rate', dayratio: 'daytime-population-ratio'};
 function cardHtml(m, removable){
   const c = state.conds[m.id] || {};
+  const hasC = c.min !== undefined || c.max !== undefined;
   const pct = ((m.p50 - m.min) / (m.max - m.min) * 100).toFixed(1);
-  return '<div class="sc-card" data-id="' + m.id + '"><h4>' + m.label + (removable ? '<button class="sc-x" title="外す">×</button>' : '') + '</h4>'
+  return '<div class="sc-card' + (hasC ? ' has-cond' : '') + '" data-id="' + m.id + '"><h4><span>' + m.label + '</span>' + (removable ? '<button type="button" class="sc-x" title="外す" aria-label="' + m.label + 'の条件を外す">×</button>' : '') + '</h4>'
+    + (m.gloss ? '<span class="sc-gloss">' + m.gloss + '</span>' : '')
+    + (GLOSSARY[m.id] ? '<a class="sc-glink" href="/glossary/' + GLOSSARY[m.id] + '/">この指標の解説 →</a>' : '')
     + '<span class="sc-src">' + m.src + (m.note ? '｜' + m.note : '') + '</span>'
-    + '<div class="sc-io"><input type="number" class="sc-min" placeholder="最小" value="' + (c.min ?? '') + '"><span>〜</span><input type="number" class="sc-max" placeholder="最大" value="' + (c.max ?? '') + '"><span>' + (c.percap ? '件/万人' : m.unit) + '</span></div>'
+    + '<div class="sc-io"><input type="number" inputmode="decimal" step="any" class="sc-min" placeholder="最小" aria-label="' + m.label + 'の最小値" value="' + (c.min ?? '') + '"><span>〜</span><input type="number" inputmode="decimal" step="any" class="sc-max" placeholder="最大" aria-label="' + m.label + 'の最大値" value="' + (c.max ?? '') + '"><span>' + (c.percap ? '件/万人' : m.unit) + '</span></div>'
     + '<div class="sc-bar"><i style="left:' + pct + '%"></i></div>'
     + '<span class="sc-src">最小 ' + fmt(m.min, m.dec) + '／中央 ' + fmt(m.p50, m.dec) + '／最大 ' + fmt(m.max, m.dec) + '</span>'
     + (m.percap ? '<label class="sc-percap"><input type="checkbox" class="sc-pc" ' + (c.percap ? 'checked' : '') + '> 人口1万人あたりで比べる</label>' : '')
@@ -293,6 +415,7 @@ function bindCards(root){
       if(mn !== '') c.min = parseFloat(mn);
       if(mx !== '') c.max = parseFloat(mx);
       if(pc && pc.checked) c.percap = true;
+      card.classList.toggle('has-cond', c.min !== undefined || c.max !== undefined);
       if(c.min === undefined && c.max === undefined && !c.percap) delete state.conds[id]; else state.conds[id] = c;
       state.shown = 100; saveHash(); render();
     };
@@ -320,22 +443,41 @@ function applyStateToInputs(){
   $('#scCoastal').checked = state.coastal; $('#scRail').checked = state.rail;
   syncCards();
 }
+(function(){
+  const cp = $('#scCondPanel');
+  if(cp && window.matchMedia('(max-width: 640px)').matches) cp.open = false;
+  const bar = $('#scStickyBar'), rh = $('#scResultHead'), tbl = $('#scTable');
+  if(bar && rh && 'IntersectionObserver' in window){
+    let rhVis = false, tblVis = false;
+    const syncBar = () => bar.classList.toggle('is-hidden', rhVis || tblVis);
+    const io = new IntersectionObserver(es => {
+      es.forEach(e => { if(e.target === rh) rhVis = e.isIntersecting; if(e.target === tbl) tblVis = e.isIntersecting; });
+      syncBar();
+    }, {threshold: 0.01});
+    io.observe(rh); io.observe(tbl);
+  }
+  const jb = $('#scStickyJump');
+  if(jb && rh) jb.addEventListener('click', e => {
+    e.preventDefault();
+    rh.scrollIntoView({behavior: prefersReducedMotion() ? 'auto' : 'smooth'});
+  });
+})();
 fetch(new URLSearchParams(location.search).get('data') || 'https://jpopendata.jp/screener/screener-data.json').then(r => r.json()).then(d => {
   DATA = d; IND = d.indicators; IND.forEach((m,i) => IDX[m.id] = i);
   const prefs = [...new Set(d.rows.map(r => r[1]))];
   $('#scPrefs').innerHTML = prefs.map(p => '<label><input type="checkbox" class="sc-pref-cb" value="' + p + '"> ' + p + '</label>').join('');
   $('#scBands').innerHTML = BANDS.map(b => '<label><input type="checkbox" class="sc-band-cb" value="' + b[0] + '"> ' + b[1] + '</label>').join('');
-  $('#scPresets').innerHTML = PRESETS.map((p,i) => '<button class="sc-preset" data-p="' + i + '">' + p[0] + '</button>').join('');
+  $('#scPresets').innerHTML = PRESETS.map((p,i) => '<button type="button" class="sc-preset" data-p="' + i + '" aria-pressed="false">' + p[0] + '</button>').join('');
   document.querySelectorAll('.sc-preset').forEach(b => b.addEventListener('click', () => {
     const conds = PRESETS[+b.dataset.p][1];
     state.conds = JSON.parse(JSON.stringify(conds)); state.prefs = new Set(); state.bands = new Set(); state.coastal = false; state.rail = false;
     state.sortId = Object.keys(conds)[0]; state.sortDir = -1; state.shown = 100;
     applyStateToInputs(); saveHash(); render();
-    document.getElementById('scResultHead').scrollIntoView({behavior:'smooth'});
+    document.getElementById('scResultHead').scrollIntoView({behavior: prefersReducedMotion() ? 'auto' : 'smooth'});
   }));
   const sel = $('#scAddSel');
   sel.innerHTML = IND.filter(m => m.tier === 1).map(m => '<option value="' + m.id + '">' + m.label + '</option>').join('');
-  $('#scAddBtn').addEventListener('click', () => { const id = sel.value; if(!state.conds[id]) state.conds[id] = {}; syncCards(); });
+  $('#scAddBtn').addEventListener('click', () => { const id = sel.value; if(!state.conds[id]) state.conds[id] = {}; syncCards(); renderActiveChips(); });
   document.querySelectorAll('.sc-pref-cb').forEach(cb => cb.addEventListener('change', () => { cb.checked ? state.prefs.add(cb.value) : state.prefs.delete(cb.value); state.shown = 100; saveHash(); render(); }));
   document.querySelectorAll('.sc-band-cb').forEach(cb => cb.addEventListener('change', () => { cb.checked ? state.bands.add(cb.value) : state.bands.delete(cb.value); state.shown = 100; saveHash(); render(); }));
   $('#scCoastal').addEventListener('change', e => { state.coastal = e.target.checked; state.shown = 100; saveHash(); render(); });
