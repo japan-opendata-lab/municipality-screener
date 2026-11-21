@@ -212,6 +212,15 @@ table.sc-ref th,table.sc-ref td{text-align:left!important;position:static!import
   .sc-sticky-bar b{font-size:16px;font-variant-numeric:tabular-nums}
   .sc-sticky-bar a{background:var(--amber,#F59E0B);color:#17242e;font-weight:700;text-decoration:none;border-radius:999px;padding:7px 14px;min-height:36px;display:inline-flex;align-items:center;white-space:nowrap}
 }
+.sc-reg-group{margin:10px 0 12px;border-top:1px solid var(--line);padding-top:10px}
+.sc-reg-group:first-child{border-top:none;padding-top:4px}
+.sc-reg-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.sc-reg-name{font-size:.86rem;font-weight:700;color:var(--sub)}
+.sc-reg-btn{border:1px solid var(--line);background:var(--bg);color:var(--teal);border-radius:999px;padding:3px 11px;min-height:32px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit}
+.sc-reg-btn:hover{border-color:var(--teal)}
+.sc-copy-url{border:1px solid var(--teal)!important;background:var(--surface,#fff)!important;color:var(--teal)!important;border-radius:999px;padding:6px 14px;min-height:38px;font-size:.84rem;font-weight:700;cursor:pointer;font-family:inherit}
+.sc-count-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin:14px 0 8px}
+.sc-count-row .sc-count{margin:0}
 </style>
 
 </head>
@@ -425,6 +434,9 @@ function bindCards(root){
     const x = card.querySelector('.sc-x'); if(x) x.addEventListener('click', () => { delete state.conds[id]; syncCards(); saveHash(); render(); });
   });
 }
+function syncRegBtns(){
+  document.querySelectorAll('.sc-reg-group').forEach(grp => { const b = grp.querySelector('.sc-reg-btn'), cbs = [...grp.querySelectorAll('.sc-pref-cb')]; if(b && cbs.length) b.textContent = cbs.every(c => c.checked) ? 'すべて解除' : '一括選択'; });
+}
 function saveHash(){
   const s = {c: state.conds, p: [...state.prefs], b: [...state.bands], co: state.coastal, ra: state.rail, s: state.sortId, d: state.sortDir};
   history.replaceState(null, '', '#s=' + encodeURIComponent(JSON.stringify(s)));
@@ -439,6 +451,7 @@ function loadHash(){
 }
 function applyStateToInputs(){
   document.querySelectorAll('.sc-pref-cb').forEach(cb => cb.checked = state.prefs.has(cb.value));
+  syncRegBtns();
   document.querySelectorAll('.sc-band-cb').forEach(cb => cb.checked = state.bands.has(cb.value));
   $('#scCoastal').checked = state.coastal; $('#scRail').checked = state.rail;
   syncCards();
@@ -464,8 +477,35 @@ function applyStateToInputs(){
 })();
 fetch(new URLSearchParams(location.search).get('data') || 'https://jpopendata.jp/screener/screener-data.json').then(r => r.json()).then(d => {
   DATA = d; IND = d.indicators; IND.forEach((m,i) => IDX[m.id] = i);
-  const prefs = [...new Set(d.rows.map(r => r[1]))];
-  $('#scPrefs').innerHTML = prefs.map(p => '<label><input type="checkbox" class="sc-pref-cb" value="' + p + '"> ' + p + '</label>').join('');
+  const REGIONS = [
+    ['北海道',['北海道']],
+    ['東北',['青森県','岩手県','宮城県','秋田県','山形県','福島県']],
+    ['関東',['茨城県','栃木県','群馬県','埼玉県','千葉県','東京都','神奈川県']],
+    ['中部',['新潟県','富山県','石川県','福井県','山梨県','長野県','岐阜県','静岡県','愛知県']],
+    ['近畿',['三重県','滋賀県','京都府','大阪府','兵庫県','奈良県','和歌山県']],
+    ['中国',['鳥取県','島根県','岡山県','広島県','山口県']],
+    ['四国',['徳島県','香川県','愛媛県','高知県']],
+    ['九州・沖縄',['福岡県','佐賀県','長崎県','熊本県','大分県','宮崎県','鹿児島県','沖縄県']]
+  ];
+  const availPrefs = new Set(d.rows.map(r => r[1]));
+  const prefsEl = $('#scPrefs');
+  prefsEl.style.display = 'block';
+  prefsEl.style.maxWidth = 'none';
+  prefsEl.innerHTML = REGIONS.map(rg => {
+    const ps = rg[1].filter(p => availPrefs.has(p));
+    if(!ps.length) return '';
+    return '<div class="sc-reg-group"><div class="sc-reg-head"><span class="sc-reg-name">' + rg[0] + '</span><button type="button" class="sc-reg-btn" data-reg="' + rg[0] + '">一括選択</button></div><div class="sc-checks">'
+      + ps.map(p => '<label><input type="checkbox" class="sc-pref-cb" value="' + p + '"> ' + p + '</label>').join('')
+      + '</div></div>';
+  }).join('');
+  prefsEl.querySelectorAll('.sc-reg-btn').forEach(btn => btn.addEventListener('click', () => {
+    const grp = btn.closest('.sc-reg-group');
+    const cbs = [...grp.querySelectorAll('.sc-pref-cb')];
+    const allChecked = cbs.every(cb => cb.checked);
+    cbs.forEach(cb => { cb.checked = !allChecked; !allChecked ? state.prefs.add(cb.value) : state.prefs.delete(cb.value); });
+    btn.textContent = allChecked ? '一括選択' : 'すべて解除';
+    state.shown = 100; saveHash(); render();
+  }));
   $('#scBands').innerHTML = BANDS.map(b => '<label><input type="checkbox" class="sc-band-cb" value="' + b[0] + '"> ' + b[1] + '</label>').join('');
   $('#scPresets').innerHTML = PRESETS.map((p,i) => '<button type="button" class="sc-preset" data-p="' + i + '" aria-pressed="false">' + p[0] + '</button>').join('');
   document.querySelectorAll('.sc-preset').forEach(b => b.addEventListener('click', () => {
@@ -478,7 +518,19 @@ fetch(new URLSearchParams(location.search).get('data') || 'https://jpopendata.jp
   const sel = $('#scAddSel');
   sel.innerHTML = IND.filter(m => m.tier === 1).map(m => '<option value="' + m.id + '">' + m.label + '</option>').join('');
   $('#scAddBtn').addEventListener('click', () => { const id = sel.value; if(!state.conds[id]) state.conds[id] = {}; syncCards(); renderActiveChips(); });
-  document.querySelectorAll('.sc-pref-cb').forEach(cb => cb.addEventListener('change', () => { cb.checked ? state.prefs.add(cb.value) : state.prefs.delete(cb.value); state.shown = 100; saveHash(); render(); }));
+  document.querySelectorAll('.sc-pref-cb').forEach(cb => cb.addEventListener('change', () => { cb.checked ? state.prefs.add(cb.value) : state.prefs.delete(cb.value); state.shown = 100; saveHash(); syncRegBtns(); render(); }));
+  const copyBtn = $('#scCopyUrl'), copyLive = $('#scCopyLive');
+  if(copyBtn) copyBtn.addEventListener('click', () => {
+    saveHash();
+    const url = location.href;
+    const done = () => {
+      copyBtn.textContent = 'URLをコピーしました';
+      if(copyLive) copyLive.textContent = '絞り込み条件のURLをクリップボードにコピーしました';
+      setTimeout(() => { copyBtn.textContent = 'この条件のURLをコピー'; if(copyLive) copyLive.textContent = ''; }, 2000);
+    };
+    const fb = () => { const ta = document.createElement('textarea'); ta.value = url; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); done(); } catch(e) {} document.body.removeChild(ta); };
+    if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done).catch(fb); else fb();
+  });
   document.querySelectorAll('.sc-band-cb').forEach(cb => cb.addEventListener('change', () => { cb.checked ? state.bands.add(cb.value) : state.bands.delete(cb.value); state.shown = 100; saveHash(); render(); }));
   $('#scCoastal').addEventListener('change', e => { state.coastal = e.target.checked; state.shown = 100; saveHash(); render(); });
   $('#scRail').addEventListener('change', e => { state.rail = e.target.checked; state.shown = 100; saveHash(); render(); });
