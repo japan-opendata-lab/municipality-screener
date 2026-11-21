@@ -133,7 +133,9 @@ a.card-x:hover{border-color:var(--teal)}
 .sc-presets{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 8px}
 .sc-preset{border:1.5px solid var(--teal);color:var(--teal);background:var(--surface,#fff);border-radius:999px;padding:7px 14px;min-height:40px;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center}
 .sc-preset:hover,.sc-preset[aria-pressed="true"]{background:var(--teal);color:#fff}
-:root[data-theme="dark"] .sc-preset[aria-pressed="true"]{color:#08131a}
+:root[data-theme="dark"] .sc-preset[aria-pressed="true"]{color:#081426}
+:root[data-theme="dark"] .sc-relax{background:#0E1E33}
+:root[data-theme="dark"] .sc-more{background:#0E1E33}
 .sc-sec{margin:24px 0 8px;font-size:1.08rem}
 .sc-cats{display:flex;flex-wrap:wrap;gap:12px;align-items:stretch;margin:8px 0}
 .sc-cat{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--surface,#fff);flex:1 1 280px}
@@ -257,9 +259,21 @@ table.sc-ref th,table.sc-ref td{text-align:left!important;position:static!import
 
 <script>
 "use strict";
-let DATA = null, IND = [], IDX = {};
+let DATA = null, IND = [], IDX = {}, AVAIL_PREFS = new Set();
 const state = {conds: {}, prefs: new Set(), bands: new Set(), coastal: false, rail: false, sortId: 'pop', sortDir: -1, shown: 100};
 const BANDS = [['b1','1万人未満',0,9999],['b2','1万〜5万人',10000,49999],['b3','5万〜10万人',50000,99999],['b4','10万〜30万人',100000,299999],['b5','30万人以上',300000,Infinity]];
+const VALID_BANDS = new Set(BANDS.map(b => b[0]));
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function hasOwn(obj, k){ return Object.prototype.hasOwnProperty.call(obj, k); }
+function toFinNum(v){
+  if(typeof v === 'number') return Number.isFinite(v) ? v : undefined;
+  if(typeof v === 'string' && v.trim() !== ''){
+    const n = Number(v);
+    return Number.isFinite(n) ? n : undefined;
+  }
+  return undefined;
+}
+function isSafeCode(c){ return typeof c === 'string' && /^[0-9A-Za-z_-]{1,12}$/.test(c); }
 const PRESETS = [
  ['人口が増えている街', {popchg:{min:0.1}, pop:{min:3000}}],
  ['単身世帯が多い街', {single:{min:40}, pop:{min:10000}}],
@@ -321,7 +335,7 @@ function renderActiveChips(){
     chips.push({label: m.label + ': ' + rng + unit, fn:() => { delete state.conds[id]; syncCards(); }});
   });
   if(!chips.length){ box.innerHTML = ''; return; }
-  box.innerHTML = chips.map((ch, i) => '<button type="button" class="sc-active-chip" data-chip="' + i + '" aria-label="' + escAttr(ch.label) + ' を解除">' + escHtml(ch.label) + ' <span aria-hidden="true">×</span></button>').join('')
+  box.innerHTML = chips.map((ch, i) => '<button type="button" class="sc-active-chip" data-chip="' + i + '" aria-label="' + escHtml(ch.label) + ' を解除">' + escHtml(ch.label) + ' <span aria-hidden="true">×</span></button>').join('')
     + '<button type="button" class="sc-clear" id="scChipsClear">すべて解除</button>';
   box.querySelectorAll('.sc-active-chip').forEach(btn => btn.addEventListener('click', () => {
     chips[+btn.dataset.chip].fn(); state.shown = 100; saveHash(); render();
@@ -330,6 +344,8 @@ function renderActiveChips(){
   if(cc) cc.addEventListener('click', () => { $('#scClear').click(); });
 }
 function render(){
+  if(!hasOwn(IDX, state.sortId)) state.sortId = 'pop';
+  if(state.sortDir !== 1 && state.sortDir !== -1) state.sortDir = -1;
   const rows = filtered();
   rows.sort((a,b) => { const va = effVal(a, state.sortId, state.conds[state.sortId]), vb = effVal(b, state.sortId, state.conds[state.sortId]); if(va === null && vb === null) return 0; if(va === null) return 1; if(vb === null) return -1; return (va - vb) * state.sortDir; });
   $('#scCount').innerHTML = '全国1,741自治体のうち <b>' + rows.length.toLocaleString() + '件</b>';
@@ -344,17 +360,22 @@ function render(){
     if(id === 'name') return '<th scope="col">自治体</th>';
     if(id === 'pref') return '<th scope="col">都道府県</th>';
     const m = IND[IDX[id]];
+    if(!m) return '';
     const active = state.sortId === id;
     const arrow = active ? (state.sortDir === -1 ? ' ▼' : ' ▲') : ' ↕';
     const ariaSort = active ? (state.sortDir === -1 ? 'descending' : 'ascending') : 'none';
     const pc = state.conds[id] && state.conds[id].percap;
     const unit = pc ? '1万人あたり' : (m.unit || '');
-    return '<th scope="col" data-s="' + id + '" data-sort="1" tabindex="0" aria-sort="' + ariaSort + '">' + m.label + arrow + (unit ? '<span class="sc-th-unit">(' + unit + ')</span>' : '') + '</th>';
+    return '<th scope="col" data-s="' + escHtml(id) + '" data-sort="1" tabindex="0" aria-sort="' + ariaSort + '">' + escHtml(m.label) + arrow + (unit ? '<span class="sc-th-unit">(' + escHtml(unit) + ')</span>' : '') + '</th>';
   }).join('');
   const body = rows.slice(0, state.shown).map(r => '<tr>' + cols.map(id => {
-    if(id === 'name') return '<td><a href="https://jpopendata.jp/cities/' + r[0] + '/">' + r[2] + '</a></td>';
-    if(id === 'pref') return '<td>' + r[1] + '</td>';
+    if(id === 'name'){
+      const code = isSafeCode(r[0]) ? encodeURIComponent(r[0]) : '';
+      return '<td><a href="https://jpopendata.jp/cities/' + code + '/">' + escHtml(r[2]) + '</a></td>';
+    }
+    if(id === 'pref') return '<td>' + escHtml(r[1]) + '</td>';
     const m = IND[IDX[id]];
+    if(!m) return '<td>–</td>';
     return '<td>' + fmt(effVal(r, id, state.conds[id]), state.conds[id] && state.conds[id].percap ? 1 : m.dec) + '</td>';
   }).join('') + '</tr>').join('');
   $('#scTable').innerHTML = '<thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody>';
@@ -396,14 +417,19 @@ function pass2(row, skip){
 }
 const GLOSSARY = {fiscal: 'fiscal-strength-index', balance: 'ordinary-balance-ratio', aging: 'aging-rate', single: 'single-household-ratio', income: 'taxable-income-per-taxpayer', occupancy: 'hotel-occupancy-rate', dayratio: 'daytime-population-ratio'};
 function cardHtml(m, removable){
-  const c = state.conds[m.id] || {};
-  const hasC = c.min !== undefined || c.max !== undefined;
-  const pct = ((m.p50 - m.min) / (m.max - m.min) * 100).toFixed(1);
-  return '<div class="sc-card' + (hasC ? ' has-cond' : '') + '" data-id="' + m.id + '"><h4><span>' + m.label + '</span>' + (removable ? '<button type="button" class="sc-x" title="外す" aria-label="' + m.label + 'の条件を外す">×</button>' : '') + '</h4>'
-    + (m.gloss ? '<span class="sc-gloss">' + m.gloss + '</span>' : '')
-    + (GLOSSARY[m.id] ? '<a class="sc-glink" href="/glossary/' + GLOSSARY[m.id] + '/">この指標の解説 →</a>' : '')
-    + '<span class="sc-src">' + m.src + (m.note ? '｜' + m.note : '') + '</span>'
-    + '<div class="sc-io"><input type="number" inputmode="decimal" step="any" class="sc-min" placeholder="最小" aria-label="' + m.label + 'の最小値" value="' + escAttr(c.min ?? '') + '"><span>〜</span><input type="number" inputmode="decimal" step="any" class="sc-max" placeholder="最大" aria-label="' + m.label + 'の最大値" value="' + escAttr(c.max ?? '') + '"><span>' + (c.percap ? '件/万人' : m.unit) + '</span></div>'
+  const c = (hasOwn(state.conds, m.id) && state.conds[m.id]) || {};
+  const minVal = toFinNum(c.min), maxVal = toFinNum(c.max);
+  const hasC = minVal !== undefined || maxVal !== undefined;
+  const pct = (m.max > m.min ? ((m.p50 - m.min) / (m.max - m.min) * 100) : 50).toFixed(1);
+  const sid = escHtml(m.id), slabel = escHtml(m.label);
+  const sgloss = m.gloss ? escHtml(m.gloss) : '';
+  const ssrc = escHtml(m.src) + (m.note ? '｜' + escHtml(m.note) : '');
+  const sunit = c.percap ? '件/万人' : escHtml(m.unit || '');
+  return '<div class="sc-card' + (hasC ? ' has-cond' : '') + '" data-id="' + sid + '"><h4><span>' + slabel + '</span>' + (removable ? '<button type="button" class="sc-x" title="外す" aria-label="' + slabel + 'の条件を外す">×</button>' : '') + '</h4>'
+    + (sgloss ? '<span class="sc-gloss">' + sgloss + '</span>' : '')
+    + (hasOwn(GLOSSARY, m.id) ? '<a class="sc-glink" href="/glossary/' + escHtml(GLOSSARY[m.id]) + '/">この指標の解説 →</a>' : '')
+    + '<span class="sc-src">' + ssrc + '</span>'
+    + '<div class="sc-io"><input type="number" inputmode="decimal" step="any" class="sc-min" placeholder="最小" aria-label="' + slabel + 'の最小値" value="' + (minVal !== undefined ? String(minVal) : '') + '"><span>〜</span><input type="number" inputmode="decimal" step="any" class="sc-max" placeholder="最大" aria-label="' + slabel + 'の最大値" value="' + (maxVal !== undefined ? String(maxVal) : '') + '"><span>' + sunit + '</span></div>'
     + '<div class="sc-bar"><i style="left:' + pct + '%"></i></div>'
     + '<span class="sc-src">最小 ' + fmt(m.min, m.dec) + '／中央 ' + fmt(m.p50, m.dec) + '／最大 ' + fmt(m.max, m.dec) + '</span>'
     + (m.percap ? '<label class="sc-percap"><input type="checkbox" class="sc-pc" ' + (c.percap ? 'checked' : '') + '> 人口1万人あたりで比べる</label>' : '')
@@ -411,7 +437,7 @@ function cardHtml(m, removable){
 }
 function syncCards(){
   $('#scHead').innerHTML = IND.filter(m => m.tier === 0).map(m => cardHtml(m, false)).join('');
-  $('#scDetail').innerHTML = IND.filter(m => m.tier === 1 && state.conds[m.id]).map(m => cardHtml(m, true)).join('');
+  $('#scDetail').innerHTML = IND.filter(m => m.tier === 1 && hasOwn(state.conds, m.id)).map(m => cardHtml(m, true)).join('');
   bindCards($('#scHead')); bindCards($('#scDetail'));
 }
 function bindCards(root){
@@ -421,8 +447,9 @@ function bindCards(root){
       const mn = card.querySelector('.sc-min').value, mx = card.querySelector('.sc-max').value;
       const pc = card.querySelector('.sc-pc');
       const c = {};
-      if(mn !== '') c.min = parseFloat(mn);
-      if(mx !== '') c.max = parseFloat(mx);
+      const nMin = toFinNum(mn), nMax = toFinNum(mx);
+      if(nMin !== undefined) c.min = nMin;
+      if(nMax !== undefined) c.max = nMax;
       if(pc && pc.checked) c.percap = true;
       card.classList.toggle('has-cond', c.min !== undefined || c.max !== undefined);
       if(c.min === undefined && c.max === undefined && !c.percap) delete state.conds[id]; else state.conds[id] = c;
@@ -441,31 +468,32 @@ function saveHash(){
   const s = {c: state.conds, p: [...state.prefs], b: [...state.bands], co: state.coastal, ra: state.rail, s: state.sortId, d: state.sortDir};
   history.replaceState(null, '', '#s=' + encodeURIComponent(JSON.stringify(s)));
 }
-function escHtml(v){ return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
-function escAttr(v){ return escHtml(v).replace(/"/g, '&quot;'); }
 function loadHash(){
   if(!location.hash.startsWith('#s=')) return;
   try {
     const s = JSON.parse(decodeURIComponent(location.hash.slice(3)));
-    const okIds = {}; IND.forEach(m => okIds[m.id] = true);
-    const conds = {};
-    if (s.c && typeof s.c === 'object'){
-      Object.keys(s.c).forEach(id => {
-        if (!okIds[id]) return;
-        const c = s.c[id] || {}, o = {};
-        ['min','max'].forEach(k => { const v = c[k]; if (v !== undefined && v !== null && v !== '' && isFinite(Number(v))) o[k] = Number(v); });
-        if (c.percap) o.percap = true;
-        if (Object.keys(o).length) conds[id] = o;
-      });
+    if(!s || typeof s !== 'object' || Array.isArray(s)) return;
+    const cleanConds = {};
+    if(s.c && typeof s.c === 'object' && !Array.isArray(s.c)){
+      for(const k of Object.keys(s.c)){
+        if(!hasOwn(IDX, k)) continue;
+        const raw = s.c[k];
+        if(!raw || typeof raw !== 'object' || Array.isArray(raw)) continue;
+        const entry = {};
+        const mn = toFinNum(raw.min), mx = toFinNum(raw.max);
+        if(mn !== undefined) entry.min = mn;
+        if(mx !== undefined) entry.max = mx;
+        if(raw.percap && IND[IDX[k]] && IND[IDX[k]].percap) entry.percap = true;
+        if(entry.min !== undefined || entry.max !== undefined || entry.percap) cleanConds[k] = entry;
+      }
     }
-    state.conds = conds;
-    const allPrefs = new Set(); REGIONS.forEach(rg => rg[1].forEach(p => allPrefs.add(p)));
-    state.prefs = new Set((Array.isArray(s.p) ? s.p : []).filter(p => allPrefs.has(p)));
-    const okBands = new Set(BANDS.map(b => b[0]));
-    state.bands = new Set((Array.isArray(s.b) ? s.b : []).filter(b => okBands.has(b)));
-    state.coastal = !!s.co; state.rail = !!s.ra;
-    state.sortId = (s.s === 'pop' || okIds[s.s]) ? s.s : 'pop';
-    state.sortDir = (s.d === 1 || s.d === -1) ? s.d : -1;
+    state.conds = cleanConds;
+    state.prefs = new Set(Array.isArray(s.p) ? s.p.filter(p => typeof p === 'string' && (!AVAIL_PREFS.size || AVAIL_PREFS.has(p))) : []);
+    state.bands = new Set(Array.isArray(s.b) ? s.b.filter(b => typeof b === 'string' && VALID_BANDS.has(b)) : []);
+    state.coastal = !!s.co;
+    state.rail = !!s.ra;
+    state.sortId = (typeof s.s === 'string' && hasOwn(IDX, s.s)) ? s.s : 'pop';
+    state.sortDir = s.d === 1 ? 1 : -1;
   } catch(e) {}
 }
 function applyStateToInputs(){
@@ -507,6 +535,7 @@ fetch(new URLSearchParams(location.search).get('data') || 'https://jpopendata.jp
     ['九州・沖縄',['福岡県','佐賀県','長崎県','熊本県','大分県','宮崎県','鹿児島県','沖縄県']]
   ];
   const availPrefs = new Set(d.rows.map(r => r[1]));
+  AVAIL_PREFS = availPrefs;
   const prefsEl = $('#scPrefs');
   prefsEl.style.display = 'block';
   prefsEl.style.maxWidth = 'none';
