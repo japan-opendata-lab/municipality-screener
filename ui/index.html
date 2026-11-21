@@ -321,7 +321,7 @@ function renderActiveChips(){
     chips.push({label: m.label + ': ' + rng + unit, fn:() => { delete state.conds[id]; syncCards(); }});
   });
   if(!chips.length){ box.innerHTML = ''; return; }
-  box.innerHTML = chips.map((ch, i) => '<button type="button" class="sc-active-chip" data-chip="' + i + '" aria-label="' + ch.label + ' を解除">' + ch.label + ' <span aria-hidden="true">×</span></button>').join('')
+  box.innerHTML = chips.map((ch, i) => '<button type="button" class="sc-active-chip" data-chip="' + i + '" aria-label="' + escAttr(ch.label) + ' を解除">' + escHtml(ch.label) + ' <span aria-hidden="true">×</span></button>').join('')
     + '<button type="button" class="sc-clear" id="scChipsClear">すべて解除</button>';
   box.querySelectorAll('.sc-active-chip').forEach(btn => btn.addEventListener('click', () => {
     chips[+btn.dataset.chip].fn(); state.shown = 100; saveHash(); render();
@@ -403,7 +403,7 @@ function cardHtml(m, removable){
     + (m.gloss ? '<span class="sc-gloss">' + m.gloss + '</span>' : '')
     + (GLOSSARY[m.id] ? '<a class="sc-glink" href="/glossary/' + GLOSSARY[m.id] + '/">この指標の解説 →</a>' : '')
     + '<span class="sc-src">' + m.src + (m.note ? '｜' + m.note : '') + '</span>'
-    + '<div class="sc-io"><input type="number" inputmode="decimal" step="any" class="sc-min" placeholder="最小" aria-label="' + m.label + 'の最小値" value="' + (c.min ?? '') + '"><span>〜</span><input type="number" inputmode="decimal" step="any" class="sc-max" placeholder="最大" aria-label="' + m.label + 'の最大値" value="' + (c.max ?? '') + '"><span>' + (c.percap ? '件/万人' : m.unit) + '</span></div>'
+    + '<div class="sc-io"><input type="number" inputmode="decimal" step="any" class="sc-min" placeholder="最小" aria-label="' + m.label + 'の最小値" value="' + escAttr(c.min ?? '') + '"><span>〜</span><input type="number" inputmode="decimal" step="any" class="sc-max" placeholder="最大" aria-label="' + m.label + 'の最大値" value="' + escAttr(c.max ?? '') + '"><span>' + (c.percap ? '件/万人' : m.unit) + '</span></div>'
     + '<div class="sc-bar"><i style="left:' + pct + '%"></i></div>'
     + '<span class="sc-src">最小 ' + fmt(m.min, m.dec) + '／中央 ' + fmt(m.p50, m.dec) + '／最大 ' + fmt(m.max, m.dec) + '</span>'
     + (m.percap ? '<label class="sc-percap"><input type="checkbox" class="sc-pc" ' + (c.percap ? 'checked' : '') + '> 人口1万人あたりで比べる</label>' : '')
@@ -441,12 +441,31 @@ function saveHash(){
   const s = {c: state.conds, p: [...state.prefs], b: [...state.bands], co: state.coastal, ra: state.rail, s: state.sortId, d: state.sortDir};
   history.replaceState(null, '', '#s=' + encodeURIComponent(JSON.stringify(s)));
 }
+function escHtml(v){ return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function escAttr(v){ return escHtml(v).replace(/"/g, '&quot;'); }
 function loadHash(){
   if(!location.hash.startsWith('#s=')) return;
   try {
     const s = JSON.parse(decodeURIComponent(location.hash.slice(3)));
-    state.conds = s.c || {}; state.prefs = new Set(s.p || []); state.bands = new Set(s.b || []);
-    state.coastal = !!s.co; state.rail = !!s.ra; state.sortId = s.s || 'pop'; state.sortDir = s.d || -1;
+    const okIds = {}; IND.forEach(m => okIds[m.id] = true);
+    const conds = {};
+    if (s.c && typeof s.c === 'object'){
+      Object.keys(s.c).forEach(id => {
+        if (!okIds[id]) return;
+        const c = s.c[id] || {}, o = {};
+        ['min','max'].forEach(k => { const v = c[k]; if (v !== undefined && v !== null && v !== '' && isFinite(Number(v))) o[k] = Number(v); });
+        if (c.percap) o.percap = true;
+        if (Object.keys(o).length) conds[id] = o;
+      });
+    }
+    state.conds = conds;
+    const allPrefs = new Set(); REGIONS.forEach(rg => rg[1].forEach(p => allPrefs.add(p)));
+    state.prefs = new Set((Array.isArray(s.p) ? s.p : []).filter(p => allPrefs.has(p)));
+    const okBands = new Set(BANDS.map(b => b[0]));
+    state.bands = new Set((Array.isArray(s.b) ? s.b : []).filter(b => okBands.has(b)));
+    state.coastal = !!s.co; state.rail = !!s.ra;
+    state.sortId = (s.s === 'pop' || okIds[s.s]) ? s.s : 'pop';
+    state.sortDir = (s.d === 1 || s.d === -1) ? s.d : -1;
   } catch(e) {}
 }
 function applyStateToInputs(){
