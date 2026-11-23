@@ -151,9 +151,17 @@ def core_list_indicators():
 
 def build_server():
     from mcp.server.fastmcp import FastMCP
+    from mcp.types import ToolAnnotations
+
+    # All four tools are read-only lookups over a published dataset:
+    # they never modify anything, the same arguments give the same
+    # result for a given dataset version, and answers are computed
+    # from a public endpoint fetched at runtime.
+    _READ_ONLY = ToolAnnotations(readOnlyHint=True, destructiveHint=False,
+                                 idempotentHint=True, openWorldHint=True)
     srv = FastMCP('municipality-screener')
 
-    @srv.tool()
+    @srv.tool(annotations=_READ_ONLY)
     def search_municipalities(conditions: list[dict] | None = None,
                               prefectures: list[str] | None = None,
                               coastal_only: bool = False,
@@ -170,21 +178,21 @@ def build_server():
         return core_search(conditions, prefectures, coastal_only,
                            railway_only, sort_by, descending, limit)
 
-    @srv.tool()
+    @srv.tool(annotations=_READ_ONLY)
     def get_municipality(code_or_name: str) -> dict:
         """Full published-statistics profile of one municipality, by its
         5-digit municipality code or Japanese name. Every value carries its
         source."""
         return core_get(code_or_name)
 
-    @srv.tool()
+    @srv.tool(annotations=_READ_ONLY)
     def compare_municipalities(codes: list[str],
                                indicators: list[str] | None = None) -> dict:
         """Compare 2-5 municipalities side by side on the chosen indicators
         (default: the headline set). Every indicator carries its source."""
         return core_compare(codes, indicators)
 
-    @srv.tool()
+    @srv.tool(annotations=_READ_ONLY)
     def list_indicators() -> dict:
         """The indicator catalog: definitions, units, sources and notes for
         every statistic available to the screener."""
