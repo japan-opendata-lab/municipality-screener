@@ -34,8 +34,32 @@ def test_compare_and_catalog():
     assert len(server.core_list_indicators()['indicators']) == 50
 
 
+
+def test_tool_registry_and_annotations():
+    """All four MCP tools are registered under their public names and
+    declare the four behaviour hints. Skipped when the mcp SDK is not
+    installed (the core-logic tests above do not need it)."""
+    try:
+        import asyncio
+
+        tools = asyncio.run(server.build_server().list_tools())
+    except ImportError:
+        print('skip: mcp SDK not installed')
+        return
+    by_name = {t.name: t for t in tools}
+    assert set(by_name) == {'search_municipalities', 'get_municipality',
+                            'compare_municipalities', 'list_indicators'}
+    for t in tools:
+        a = t.annotations
+        assert a is not None, t.name
+        assert a.readOnlyHint is True and a.destructiveHint is False
+        assert a.idempotentHint is True and a.openWorldHint is True
+
+
 if __name__ == '__main__':
     test_search_excludes_missing_values()
     test_get_carries_sources()
     test_compare_and_catalog()
+    test_tool_registry_and_annotations()
     print('all core tests passed')
+
